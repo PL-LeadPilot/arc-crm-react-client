@@ -1,26 +1,52 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {JSX} from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
+import CompanyPage from './pages/CompanyPage';
+import UserPage from './pages/UserPage';
+
+// 유효성 체크
+const isTokenValid = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp && Math.floor(Date.now() / 1000) < payload.exp;
+    } catch {
+        return false;
+    }
+};
+
+const getUserRole = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.role || null;
+    } catch {
+        return null;
+    }
+};
+
+const PrivateRoute = ({ element }: { element: JSX.Element }) =>
+    isTokenValid() ? element : <Navigate to="/login" />;
+
+const PublicOnlyRoute = ({ element }: { element: JSX.Element }) =>
+    isTokenValid() ? <Navigate to="/company" /> : element;
+
+const AdminRoute = ({ element }: { element: JSX.Element }) =>
+    isTokenValid() && getUserRole() === 'ADMIN' ? element : <Navigate to="/company" />;
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <Routes>
+            <Route path="/login" element={<PublicOnlyRoute element={<LoginPage />} />} />
+            <Route path="/signup" element={<AdminRoute element={<SignUpPage />} />} />
+            <Route path="/company" element={<PrivateRoute element={<CompanyPage />} />} />
+            <Route path="/user" element={<PrivateRoute element={<UserPage />} />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+    );
 }
 
 export default App;

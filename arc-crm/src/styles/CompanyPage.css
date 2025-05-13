@@ -1,0 +1,36 @@
+.company-page {
+    font-family: 'Arial', sans-serif;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2d2d2d;
+    padding: 1rem;
+    color: white;
+}
+
+.nav-left {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-button {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.nav-button:hover {
+    background-color: #666;
+}
+
+.company-content {
+    padding: 2rem;
+}
