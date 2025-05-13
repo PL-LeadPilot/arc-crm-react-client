@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import LoginPage from '../pages/LoginPage';
+import LoginPage from '../../pages/user-pages/LoginPage';
 
 beforeEach(() => {
     global.fetch = jest.fn(() =>

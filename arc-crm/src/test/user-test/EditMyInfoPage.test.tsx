@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
-import EditMyInfoPage from '../pages/EditMyInfoPage';
+import EditMyInfoPage from '../../pages/user-pages/EditMyInfoPage';
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({

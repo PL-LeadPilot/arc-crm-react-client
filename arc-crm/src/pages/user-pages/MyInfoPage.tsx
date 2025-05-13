@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/SignUpPage.css';
+import '../../styles/user-styles/SignUpPage.css';
 
 function getUserRole(): string | null {
     const token = localStorage.getItem('token');

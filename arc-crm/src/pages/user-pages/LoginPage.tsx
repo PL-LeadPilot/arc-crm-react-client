@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/LoginPage.css';
+import '../../styles/user-styles/LoginPage.css';
 
 // 토큰 유효성 검사 함수
 function isTokenValid(token: string | null): boolean {

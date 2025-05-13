@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
-import SignUpPage from '../pages/SignUpPage';
+import SignUpPage from '../../pages/user-pages/SignUpPage';
 
 // navigate 모킹
 const mockNavigate = jest.fn();

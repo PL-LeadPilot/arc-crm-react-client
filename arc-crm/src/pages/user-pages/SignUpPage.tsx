@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/SignUpPage.css';
+import '../../styles/user-styles/SignUpPage.css';
 
 function isTokenValid(token: string | null): boolean {
     if (!token) return false;

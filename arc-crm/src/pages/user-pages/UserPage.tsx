@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/UserPage.css';
+import '../../styles/user-styles/UserPage.css';
 
 interface User {
     userName: string;
