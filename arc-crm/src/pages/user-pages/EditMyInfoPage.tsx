@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../../styles/user-styles/SignUpPage.css';
+import '../../styles/container.css'
+import '../../styles/form.css'
+import '../../styles/nav.css'
+import '../../styles/page.css'
+import '../../styles/table.css'
 
 function EditMyInfoPage() {
     const navigate = useNavigate();

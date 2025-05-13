@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../../styles/user-styles/SignUpPage.css';
+import '../../styles/container.css'
+import '../../styles/form.css'
+import '../../styles/nav.css'
+import '../../styles/page.css'
+import '../../styles/table.css'
 
 function isTokenValid(token: string | null): boolean {
     if (!token) return false;
@@ -142,7 +146,7 @@ function SignUpPage() {
                     <button onClick={handleGoToCompanyPage} className="nav-button">고객사 페이지</button>
                 </div>
             </nav>
-            <div className="signup-container">
+            <div className="container">
                 <h2>회원가입</h2>
                 <h4>*은 필수입니다.</h4>
                 <form onSubmit={handleSignUp}>

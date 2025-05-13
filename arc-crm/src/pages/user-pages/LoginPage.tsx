@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../../styles/user-styles/LoginPage.css';
+import '../../styles/container.css'
 
 // 토큰 유효성 검사 함수
 function isTokenValid(token: string | null): boolean {
@@ -20,7 +20,6 @@ function LoginPage() {
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    // ✅ 이미 로그인된 사용자는 /company로 리디렉션
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (isTokenValid(token)) {
@@ -57,7 +56,7 @@ function LoginPage() {
     };
 
     return (
-        <div className="login-container">
+        <div className="container">
             <h2>로그인</h2>
             <form onSubmit={handleLogin}>
                 <input
