@@ -1,10 +1,4 @@
-h2 {
-    font-size: 35px;
-    margin-bottom: 20px;
-    margin-top: 10px;
-}
-
-.login-container {
+.container {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -19,7 +13,7 @@ h2 {
     font-family: "Roboto", sans-serif; /* Apply Roboto font */
 }
 
-.login-container input {
+.container input {
     border: 2px solid lightgrey;
     border-radius: 40px;
     outline: none;
@@ -29,7 +23,7 @@ h2 {
     margin-bottom: 8px;
 }
 
-.login-container button {
+.container button {
     width: 100%;
     padding: 10px;
     background-color: black;
@@ -38,7 +32,7 @@ h2 {
     border-radius: 40px;
     outline: none;
     font-size: 14px;
-    box-sizing: border-box; /* 추가: 박스 모델에 패딩과 테두리 포함 */
+    box-sizing: border-box;
 }
 
 .error {

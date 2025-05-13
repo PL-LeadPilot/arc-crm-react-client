@@ -1,0 +1,25 @@
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.form-row label {
+    width: 90px;
+    margin-right: 5px;
+    font-weight: 500;
+    font-size: 14px;
+    text-align: left;
+}
+
+.form-row input,
+.form-row select {
+    border: 2px solid lightgrey;
+    border-radius: 40px;
+    outline: none;
+    width: 100%;
+    height: 30px;
+    text-indent: 7px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
