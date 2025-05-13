@@ -5,6 +5,8 @@ import SignUpPage from './pages/SignUpPage';
 import CompanyPage from './pages/CompanyPage';
 import UserPage from './pages/UserPage';
 import MyInfoPage from './pages/MyInfoPage';
+import EditMyInfoPage from './pages/EditMyInfoPage';
+
 
 // 유효성 체크
 const isTokenValid = () => {
@@ -46,6 +48,7 @@ function App() {
             <Route path="/company" element={<PrivateRoute element={<CompanyPage />} />} />
             <Route path="/user" element={<PrivateRoute element={<UserPage />} />} />
             <Route path="/user/me" element={<PrivateRoute element={<MyInfoPage />} />} />
+            <Route path="/user/me/edit" element={<PrivateRoute element={<EditMyInfoPage />} />} />
             <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
     );

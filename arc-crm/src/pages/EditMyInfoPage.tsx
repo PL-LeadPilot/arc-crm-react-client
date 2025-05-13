@@ -1,81 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/SignUpPage.css';
 
-function isTokenValid(token: string | null): boolean {
-    if (!token) return false;
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const currentTime = Math.floor(Date.now() / 1000);
-        return payload.exp && currentTime < payload.exp;
-    } catch {
-        return false;
-    }
-}
-
-function SignUpPage() {
-    const [userId, setUserId] = useState('');
-    const [userPassword, setUserPassword] = useState('');
-    const [userEmail, setUserEmail] = useState('');
-    const [userName, setUserName] = useState('');
-    const [userPhone, setUserPhone] = useState('');
-    const [userRole, setUserRole] = useState('SALES');
-    const [userPosition, setUserPosition] = useState('');
-    const [userDivision, setUserDivision] = useState('');
-    const [error, setError] = useState<string | null>(null);
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+function EditMyInfoPage() {
     const navigate = useNavigate();
 
+    const [userName, setUserName] = useState('');
+    const [userPhone, setUserPhone] = useState('');
+    const [userEmail, setUserEmail] = useState('');
+    const [userPosition, setUserPosition] = useState('');
+    const [userDivision, setUserDivision] = useState('');
+    const [userCurrentPassword, setUserCurrentPassword] = useState('');
+    const [userNewPassword, setUserNewPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!isTokenValid(token)) {
-            localStorage.removeItem('token');
-            navigate('/');
-            return;
-        }
+        const fetchMyInfo = async () => {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/user/myInfo', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) return;
+            const data = await response.json();
+            setUserName(data.userName);
+            setUserPhone(data.userPhone);
+            setUserEmail(data.userEmail);
+            setUserPosition(data.userPosition);
+            setUserDivision(data.userDivision);
+        };
+        fetchMyInfo();
+    }, []);
 
-        try {
-            const payload = JSON.parse(atob(token!.split('.')[1]));
-            const role = payload.role;
-
-            if (role === 'SALES') {
-                alert('접근할 수 없는 페이지입니다.');
-                navigate('/company');
-            }
-        } catch {
-            localStorage.removeItem('token');
-            navigate('/');
-        }
-    }, [navigate]);
-
-    const handleSignUp = async (e: React.FormEvent) => {
+    const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         const newErrors: Record<string, string> = {};
 
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(userId)) {
-            newErrors.userId = '아이디는 3~20자 영문 또는 숫자여야 합니다.';
-        }
-
-        if (
-            userPassword.length < 7 ||
-            userPassword.length > 20 ||
-            !/[a-zA-Z]/.test(userPassword) ||
-            !/[0-9]/.test(userPassword)
-        ) {
-            newErrors.userPassword = '비밀번호는 영문과 숫자를 포함한 7~20자여야 합니다.';
+        if (!userCurrentPassword) {
+            newErrors.userCurrentPassword = '현재 비밀번호는 필수입니다.';
         }
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
             newErrors.userEmail = '유효한 이메일 주소를 입력하세요.';
         }
 
-        if (userName.trim().length < 2) {
-            newErrors.userName = '이름은 2자 이상 입력하세요.';
-        }
-
         if (!/^010-\d{4}-\d{4}$/.test(userPhone)) {
             newErrors.userPhone = '전화번호 형식은 010-0000-0000입니다.';
+        }
+
+        if (!userName.trim()) {
+            newErrors.userName = '이름을 입력하세요.';
         }
 
         if (!userPosition.trim()) {
@@ -93,20 +70,18 @@ function SignUpPage() {
 
         try {
             const token = localStorage.getItem('token');
-
-            const response = await fetch('/admin/auth/signup', {
-                method: 'POST',
+            const response = await fetch('/user', {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    userId,
-                    userPassword,
-                    userEmail,
+                    userCurrentPassword,
+                    userNewPassword,
                     userName,
                     userPhone,
-                    userRole,
+                    userEmail,
                     userPosition,
                     userDivision,
                 }),
@@ -115,9 +90,9 @@ function SignUpPage() {
             if (!response.ok) {
                 const errorData = await response.json();
                 const firstErrorMsg = Object.values(errorData)[0];
-                setError(typeof firstErrorMsg === 'string' ? firstErrorMsg : '회원가입 실패');
+                setError(typeof firstErrorMsg === 'string' ? firstErrorMsg : '수정 실패');
             } else {
-                navigate('/company');
+                navigate('/user/me');
             }
         } catch {
             setError('서버 오류가 발생했습니다.');
@@ -126,38 +101,35 @@ function SignUpPage() {
 
     return (
         <div className="signup-container">
-            <h2>회원가입</h2>
-            <h4>*은 필수입니다.</h4>
-            <form onSubmit={handleSignUp}>
-                {fieldErrors.userId && <p className="error">{fieldErrors.userId}</p>}
+            <h2>내 정보 수정</h2>
+            <form onSubmit={handleUpdate}>
+                {fieldErrors.userCurrentPassword && <p className="error">{fieldErrors.userCurrentPassword}</p>}
                 <div className="form-row">
-                    <label htmlFor="userId">*아이디</label>
+                    <label htmlFor="userCurrentPassword">*현재 비밀번호</label>
                     <input
-                        id="userId"
-                        type="text"
-                        placeholder="3자 이상 20자 이하 영문/숫자"
-                        value={userId}
-                        onChange={(e) => setUserId(e.target.value)}
+                        id="userCurrentPassword"
+                        type="password"
+                        placeholder="입력하셔야 수정됩니다."
+                        value={userCurrentPassword}
+                        onChange={(e) => setUserCurrentPassword(e.target.value)}
                         required
                     />
                 </div>
 
-                {fieldErrors.userPassword && <p className="error">{fieldErrors.userPassword}</p>}
                 <div className="form-row">
-                    <label htmlFor="userPassword">*비밀번호</label>
+                    <label htmlFor="userNewPassword">새 비밀번호 (선택)</label>
                     <input
-                        id="userPassword"
+                        id="userNewPassword"
                         type="password"
                         placeholder="7자 이상 20자 이하 영문/숫자"
-                        value={userPassword}
-                        onChange={(e) => setUserPassword(e.target.value)}
-                        required
+                        value={userNewPassword}
+                        onChange={(e) => setUserNewPassword(e.target.value)}
                     />
                 </div>
 
                 {fieldErrors.userEmail && <p className="error">{fieldErrors.userEmail}</p>}
                 <div className="form-row">
-                    <label htmlFor="userEmail">*이메일</label>
+                    <label htmlFor="userEmail">이메일</label>
                     <input
                         id="userEmail"
                         type="email"
@@ -170,7 +142,7 @@ function SignUpPage() {
 
                 {fieldErrors.userName && <p className="error">{fieldErrors.userName}</p>}
                 <div className="form-row">
-                    <label htmlFor="userName">*이름</label>
+                    <label htmlFor="userName">이름</label>
                     <input
                         id="userName"
                         type="text"
@@ -183,7 +155,7 @@ function SignUpPage() {
 
                 {fieldErrors.userPhone && <p className="error">{fieldErrors.userPhone}</p>}
                 <div className="form-row">
-                    <label htmlFor="userPhone">*전화번호</label>
+                    <label htmlFor="userPhone">전화번호</label>
                     <input
                         id="userPhone"
                         type="text"
@@ -196,11 +168,10 @@ function SignUpPage() {
 
                 {fieldErrors.userPosition && <p className="error">{fieldErrors.userPosition}</p>}
                 <div className="form-row">
-                    <label htmlFor="userPosition">*직책</label>
+                    <label htmlFor="userPosition">직책</label>
                     <input
                         id="userPosition"
                         type="text"
-                        placeholder="*직책"
                         value={userPosition}
                         onChange={(e) => setUserPosition(e.target.value)}
                         required
@@ -209,35 +180,21 @@ function SignUpPage() {
 
                 {fieldErrors.userDivision && <p className="error">{fieldErrors.userDivision}</p>}
                 <div className="form-row">
-                    <label htmlFor="userDivision">*부서</label>
+                    <label htmlFor="userDivision">부서</label>
                     <input
                         id="userDivision"
                         type="text"
-                        placeholder="*부서"
                         value={userDivision}
                         onChange={(e) => setUserDivision(e.target.value)}
                         required
                     />
                 </div>
 
-                <div className="form-row">
-                    <label htmlFor="userRole">*권한:</label>
-                    <select
-                        id="userRole"
-                        value={userRole}
-                        onChange={(e) => setUserRole(e.target.value)}
-                        required
-                    >
-                        <option value="SALES">SALES (default)</option>
-                        <option value="ADMIN">ADMIN</option>
-                    </select>
-                </div>
-
-                <button type="submit">회원가입</button>
+                <button type="submit">수정 완료</button>
                 {error && <p className="error">{error}</p>}
             </form>
         </div>
     );
 }
 
-export default SignUpPage;
+export default EditMyInfoPage;
