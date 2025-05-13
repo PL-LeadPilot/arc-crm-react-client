@@ -23,6 +23,7 @@ function SignUpPage() {
     const [userPosition, setUserPosition] = useState('');
     const [userDivision, setUserDivision] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -33,7 +34,6 @@ function SignUpPage() {
             return;
         }
 
-        // 권한 검사 추가
         try {
             const payload = JSON.parse(atob(token!.split('.')[1]));
             const role = payload.role;
@@ -48,9 +48,48 @@ function SignUpPage() {
         }
     }, [navigate]);
 
-
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
+        const newErrors: Record<string, string> = {};
+
+        if (!/^[a-zA-Z0-9]{3,20}$/.test(userId)) {
+            newErrors.userId = '아이디는 3~20자 영문 또는 숫자여야 합니다.';
+        }
+
+        if (
+            userPassword.length < 7 ||
+            userPassword.length > 20 ||
+            !/[a-zA-Z]/.test(userPassword) ||
+            !/[0-9]/.test(userPassword)
+        ) {
+            newErrors.userPassword = '비밀번호는 영문과 숫자를 포함한 7~20자여야 합니다.';
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
+            newErrors.userEmail = '유효한 이메일 주소를 입력하세요.';
+        }
+
+        if (userName.trim().length < 2) {
+            newErrors.userName = '이름은 2자 이상 입력하세요.';
+        }
+
+        if (!/^010-\d{4}-\d{4}$/.test(userPhone)) {
+            newErrors.userPhone = '전화번호 형식은 010-0000-0000입니다.';
+        }
+
+        if (!userPosition.trim()) {
+            newErrors.userPosition = '직책을 입력하세요.';
+        }
+
+        if (!userDivision.trim()) {
+            newErrors.userDivision = '부서를 입력하세요.';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setFieldErrors(newErrors);
+            return;
+        }
 
         try {
             const token = localStorage.getItem('token');
@@ -59,7 +98,7 @@ function SignUpPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     userId,
@@ -69,13 +108,13 @@ function SignUpPage() {
                     userPhone,
                     userRole,
                     userPosition,
-                    userDivision
+                    userDivision,
                 }),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                const firstErrorMsg = Object.values(errorData)[0]; // 첫 번째 에러만 표시
+                const firstErrorMsg = Object.values(errorData)[0];
                 setError(typeof firstErrorMsg === 'string' ? firstErrorMsg : '회원가입 실패');
             } else {
                 navigate('/company');
@@ -90,24 +129,109 @@ function SignUpPage() {
             <h2>회원가입</h2>
             <h4>*은 필수입니다.</h4>
             <form onSubmit={handleSignUp}>
-                <input type="text" placeholder="*아이디(3자 이상 20자 이하 영문 or 숫자)" value={userId} onChange={(e) => setUserId(e.target.value)} required />
+                {fieldErrors.userId && <p className="error">{fieldErrors.userId}</p>}
+                <div className="form-row">
+                    <label htmlFor="userId">*아이디</label>
+                    <input
+                        id="userId"
+                        type="text"
+                        placeholder="3자 이상 20자 이하 영문/숫자"
+                        value={userId}
+                        onChange={(e) => setUserId(e.target.value)}
+                        required
+                    />
+                </div>
 
-                <input type="password" placeholder="*패스워드(7자 이상 20자 이하 영문 포함 숫자" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} required />
+                {fieldErrors.userPassword && <p className="error">{fieldErrors.userPassword}</p>}
+                <div className="form-row">
+                    <label htmlFor="userPassword">*비밀번호</label>
+                    <input
+                        id="userPassword"
+                        type="password"
+                        placeholder="7자 이상 20자 이하 영문/숫자"
+                        value={userPassword}
+                        onChange={(e) => setUserPassword(e.target.value)}
+                        required
+                    />
+                </div>
 
-                <input type="email" placeholder="이메일(test@test.com)" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} required />
+                {fieldErrors.userEmail && <p className="error">{fieldErrors.userEmail}</p>}
+                <div className="form-row">
+                    <label htmlFor="userEmail">이메일</label>
+                    <input
+                        id="userEmail"
+                        type="email"
+                        placeholder="test@test.com"
+                        value={userEmail}
+                        onChange={(e) => setUserEmail(e.target.value)}
+                        required
+                    />
+                </div>
 
-                <input type="text" placeholder="*이름" value={userName} onChange={(e) => setUserName(e.target.value)} required />
+                {fieldErrors.userName && <p className="error">{fieldErrors.userName}</p>}
+                <div className="form-row">
+                    <label htmlFor="userName">*이름</label>
+                    <input
+                        id="userName"
+                        type="text"
+                        placeholder="2자 이상 10자 이하"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                        required
+                    />
+                </div>
 
-                <input type="text" placeholder="*전화번호(010-0000-0000)" value={userPhone} onChange={(e) => setUserPhone(e.target.value)} required />
+                {fieldErrors.userPhone && <p className="error">{fieldErrors.userPhone}</p>}
+                <div className="form-row">
+                    <label htmlFor="userPhone">*전화번호</label>
+                    <input
+                        id="userPhone"
+                        type="text"
+                        placeholder="*010-0000-0000"
+                        value={userPhone}
+                        onChange={(e) => setUserPhone(e.target.value)}
+                        required
+                    />
+                </div>
 
-                <input type="text" placeholder="*직책" value={userPosition} onChange={(e) => setUserPosition(e.target.value)} required />
+                {fieldErrors.userPosition && <p className="error">{fieldErrors.userPosition}</p>}
+                <div className="form-row">
+                    <label htmlFor="userPosition">*직책</label>
+                    <input
+                        id="userPosition"
+                        type="text"
+                        placeholder="*직책"
+                        value={userPosition}
+                        onChange={(e) => setUserPosition(e.target.value)}
+                        required
+                    />
+                </div>
 
-                <input type="text" placeholder="*부서" value={userDivision} onChange={(e) => setUserDivision(e.target.value)} required />
+                {fieldErrors.userDivision && <p className="error">{fieldErrors.userDivision}</p>}
+                <div className="form-row">
+                    <label htmlFor="userDivision">*부서</label>
+                    <input
+                        id="userDivision"
+                        type="text"
+                        placeholder="*부서"
+                        value={userDivision}
+                        onChange={(e) => setUserDivision(e.target.value)}
+                        required
+                    />
+                </div>
 
-                <select value={userRole} onChange={(e) => setUserRole(e.target.value)} required>
-                    <option value="SALES">SALES (default)</option>
-                    <option value="ADMIN">ADMIN</option>
-                </select>
+                <div className="form-row">
+                    <label htmlFor="userRole">*권한:</label>
+                    <select
+                        id="userRole"
+                        value={userRole}
+                        onChange={(e) => setUserRole(e.target.value)}
+                        required
+                    >
+                        <option value="SALES">SALES (default)</option>
+                        <option value="ADMIN">ADMIN</option>
+                    </select>
+                </div>
 
                 <button type="submit">회원가입</button>
                 {error && <p className="error">{error}</p>}
