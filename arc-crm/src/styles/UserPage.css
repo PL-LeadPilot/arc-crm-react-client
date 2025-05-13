@@ -1,0 +1,26 @@
+.user-page .navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: #2d2d2d;
+    color: white;
+}
+
+.nav-left, .nav-right {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-button {
+    padding: 0.5rem 1rem;
+    background: #444;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.user-content {
+    padding: 2rem;
+    font-size: 1.2rem;
+}
