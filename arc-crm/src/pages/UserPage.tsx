@@ -42,17 +42,9 @@ function UserPage() {
         navigate('/');
     };
 
-    const handleGoToSignUp = () => {
-        navigate('/signup');
-    };
-
-    const handleGoToCompany = () => {
-        navigate('/company');
-    };
-
-    const handleGoToMyPage = () => {
-        navigate('/user/me');
-    };
+    const handleGoToSignUp = () => navigate('/signup');
+    const handleGoToCompany = () => navigate('/company');
+    const handleGoToMyPage = () => navigate('/user/me');
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
@@ -104,11 +96,11 @@ function UserPage() {
         <div className="user-page">
             <nav className="navbar">
                 <div className="nav-left">
+                    <button onClick={handleLogout} className="nav-button">로그아웃</button>
                     {userRole === 'ADMIN' && (
-                        <button onClick={handleGoToSignUp} className="nav-button">회원가입</button>
+                        <button onClick={handleGoToSignUp} className="nav-button">유저 회원가입</button>
                     )}
                     <button onClick={handleGoToMyPage} className="nav-button">내 정보 보기</button>
-                    <button onClick={handleLogout} className="nav-button">로그아웃</button>
                 </div>
                 <div className="nav-right">
                     <button onClick={handleGoToCompany} className="nav-button">고객사 페이지</button>

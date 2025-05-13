@@ -3,8 +3,20 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/SignUpPage.css';
 
+function getUserRole(): string | null {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.role || null;
+    } catch {
+        return null;
+    }
+}
+
 function MyInfoPage() {
     const navigate = useNavigate();
+    const userRole = getUserRole();
 
     const [userName, setUserName] = useState('');
     const [userPhone, setUserPhone] = useState('');
@@ -33,6 +45,7 @@ function MyInfoPage() {
         fetchMyInfo();
     }, []);
 
+    const handleGoToSignUp = () => navigate('/signup');
     const handleGoToUserPage = () => navigate('/user');
     const handleGoToCompanyPage = () => navigate('/company');
     const handleGoToEdit = () => navigate('/user/me/edit');
@@ -72,6 +85,9 @@ function MyInfoPage() {
             <nav className="navbar" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <div className="nav-left">
                     <button onClick={handleLogout} className="nav-button">로그아웃</button>
+                    {userRole === 'ADMIN' && (
+                        <button onClick={handleGoToSignUp} className="nav-button">유저 회원가입</button>
+                    )}
                 </div>
                 <div className="nav-right" style={{ display: 'flex', gap: '10px' }}>
                     <button onClick={handleGoToUserPage} className="nav-button">유저 페이지</button>
