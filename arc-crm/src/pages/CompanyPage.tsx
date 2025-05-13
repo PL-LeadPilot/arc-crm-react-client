@@ -18,7 +18,7 @@ function CompanyPage() {
         <div className="company-page">
             <nav className="navbar">
                 <div className="nav-left">
-                    <button onClick={handleGoToUserPage} className="nav-button">유저</button>
+                    <button onClick={handleGoToUserPage} className="nav-button">유저 페이지</button>
                     <button onClick={handleLogout} className="nav-button">로그아웃</button>
                 </div>
             </nav>
