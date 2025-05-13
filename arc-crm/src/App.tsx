@@ -1,9 +1,12 @@
 import React, {JSX} from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import SignUpPage from './pages/SignUpPage';
+import LoginPage from './pages/user-pages/LoginPage';
+import SignUpPage from './pages/user-pages/SignUpPage';
 import CompanyPage from './pages/CompanyPage';
-import UserPage from './pages/UserPage';
+import UserPage from './pages/user-pages/UserPage';
+import MyInfoPage from './pages/user-pages/MyInfoPage';
+import EditMyInfoPage from './pages/user-pages/EditMyInfoPage';
+
 
 // 유효성 체크
 const isTokenValid = () => {
@@ -44,6 +47,8 @@ function App() {
             <Route path="/signup" element={<AdminRoute element={<SignUpPage />} />} />
             <Route path="/company" element={<PrivateRoute element={<CompanyPage />} />} />
             <Route path="/user" element={<PrivateRoute element={<UserPage />} />} />
+            <Route path="/user/me" element={<PrivateRoute element={<MyInfoPage />} />} />
+            <Route path="/user/me/edit" element={<PrivateRoute element={<EditMyInfoPage />} />} />
             <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
     );

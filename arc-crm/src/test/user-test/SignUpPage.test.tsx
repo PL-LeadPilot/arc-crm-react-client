@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
-import SignUpPage from '../pages/SignUpPage';
+import SignUpPage from '../../pages/user-pages/SignUpPage';
 
 // navigate 모킹
 const mockNavigate = jest.fn();
@@ -30,7 +30,7 @@ describe('SignUpPage', () => {
 
         expect(screen.getByLabelText('*아이디')).toBeInTheDocument();
         expect(screen.getByLabelText('*비밀번호')).toBeInTheDocument();
-        expect(screen.getByLabelText('이메일')).toBeInTheDocument();
+        expect(screen.getByLabelText('*이메일')).toBeInTheDocument();
         expect(screen.getByLabelText('*이름')).toBeInTheDocument();
         expect(screen.getByLabelText('*전화번호')).toBeInTheDocument();
         expect(screen.getByLabelText('*직책')).toBeInTheDocument();
@@ -58,7 +58,7 @@ describe('SignUpPage', () => {
         fireEvent.change(screen.getByLabelText('*비밀번호'), {
             target: { value: 'test1234' },
         });
-        fireEvent.change(screen.getByLabelText('이메일'), {
+        fireEvent.change(screen.getByLabelText('*이메일'), {
             target: { value: 'test@abc.com' },
         });
         fireEvent.change(screen.getByLabelText('*이름'), {
@@ -120,7 +120,7 @@ describe('SignUpPage', () => {
         fireEvent.change(screen.getByLabelText('*비밀번호'), {
             target: { value: 'test1234' },
         });
-        fireEvent.change(screen.getByLabelText('이메일'), {
+        fireEvent.change(screen.getByLabelText('*이메일'), {
             target: { value: 'test@abc.com' },
         });
         fireEvent.change(screen.getByLabelText('*이름'), {
