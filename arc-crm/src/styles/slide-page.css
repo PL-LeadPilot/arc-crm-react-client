@@ -15,17 +15,16 @@
     right: 0;
     height: 100%;
     width: 60%;
-    max-width: 900px;
+    max-width: 100vw;
     background-color: #ffffff;
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
     padding: 32px 48px;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     z-index: 1000;
     transform: translateX(100%);
     transition: transform 0.3s ease-in-out;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    overflow: hidden;
 }
 
 .slide-panel.open {
@@ -39,22 +38,36 @@
     color: #333;
 }
 
-.slide-panel ul {
-    list-style: none;
-    padding: 0;
+.slide-panel .history {
+    flex-grow: 1;
+    overflow-y: auto;
     margin-top: 16px;
+    padding-right: 12px;
+    min-height: 0;
+    max-height: 270px; /* 약 5행 높이로 제한 */
 }
 
-.slide-panel ul li {
-    margin-bottom: 12px;
-    font-size: 15px;
-    color: #555;
+.slide-panel .history table {
+    width: 100%;
+    table-layout: auto;
+    border-collapse: collapse;
 }
 
-.slide-panel ul li strong {
-    display: inline-block;
-    width: 100px;
-    font-weight: 600;
+.slide-panel .history td,
+.slide-panel .history th {
+    word-break: keep-all;
+    white-space: nowrap;
+    overflow-wrap: break-word;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.slide-panel .history thead {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
 }
 
 .slide-close-button {

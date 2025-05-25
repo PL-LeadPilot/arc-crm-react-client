@@ -22,6 +22,16 @@ interface CompanyUserDetail extends CompanyUser {
     updatedAt: string;
 }
 
+interface Deal {
+    dealId: number;
+    dealName: string;
+    companyUserId: number;
+    userName: string;
+    source: string;
+    status: string;
+    dealAt: string;
+}
+
 type SortKey = keyof CompanyUser;
 
 type SortState = {
@@ -50,6 +60,7 @@ function CompanyUserPage() {
     const [companyUserDetail, setCompanyUserDetail] = useState<CompanyUserDetail | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const [deals, setDeals] = useState<Deal[]>([]);
     const ITEMS_PER_PAGE = 20;
 
     const handleLogout = () => {
@@ -127,7 +138,10 @@ function CompanyUserPage() {
             });
             if (!response.ok) throw new Error('상세 정보를 불러오지 못했습니다.');
             const data = await response.json();
-            setCompanyUserDetail(data);
+            const fullDetail = { ...selectedUser!, ...data };
+            setCompanyUserDetail(fullDetail);
+            await fetchDealsByCompany(fullDetail.companyId, fullDetail.companyUserId);
+
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -262,6 +276,27 @@ function CompanyUserPage() {
             alert(`삭제 실패: ${(err as Error).message}`);
         }
     };
+
+    const fetchDealsByCompany = async (companyId: number, companyUserId: number) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/deal/byCompany`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ companyId }),
+            });
+            if (!response.ok) throw new Error('영업 이력 조회 실패');
+            const data = await response.json();
+            const filtered = data.filter((deal: Deal) => deal.companyUserId === companyUserId);
+            setDeals(filtered);
+        } catch (err) {
+            console.error('영업 목록 조회 실패:', err);
+        }
+    };
+
 
     useEffect(() => {
         fetchCompanyUsers();
@@ -420,8 +455,8 @@ function CompanyUserPage() {
                         {selectedUser && companyUserDetail && (
                             <>
                                 <div className="slide-overlay" onClick={() => { setSelectedUser(null); setEditMode(false); }}></div>
-                                <div className="slide-panel open">
-                                    <button className="slide-close-button" onClick={() => { setSelectedUser(null); setEditMode(false); }}>×</button>
+                                <div className={`slide-panel ${selectedUser && companyUserDetail ? 'open' : ''}`}>
+                                <button className="slide-close-button" onClick={() => { setSelectedUser(null); setEditMode(false); }}>×</button>
                                     {detailLoading ? (
                                         <p>로딩 중...</p>
                                     ) : editMode ? (
@@ -475,8 +510,37 @@ function CompanyUserPage() {
                                             <div className="container-delete">
                                                 <span onClick={handleDelete} >고객사 사원 정보 삭제하기</span>
                                             </div>
+                                            <div style={{ marginTop: '20px' }}>
+                                                {deals.length === 0 ? <p>영업 이력이 없습니다.</p> : (
+                                                    <div className="history">
+                                                        <table className="table">
+                                                            <thead className="header">
+                                                            <tr>
+                                                                <th>영업명</th>
+                                                                <th>상태</th>
+                                                                <th>유입경로</th>
+                                                                <th>담당자</th>
+                                                                <th>날짜</th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            {deals.map((deal) => (
+                                                                <tr key={deal.dealId}>
+                                                                    <td>{deal.dealName}</td>
+                                                                    <td>{deal.status}</td>
+                                                                    <td>{deal.source}</td>
+                                                                    <td>{deal.userName}</td>
+                                                                    <td>{new Date(deal.dealAt).toLocaleDateString()}</td>
+                                                                </tr>
+                                                            ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                         </div>
-                                    )}
+                                        )}
                                 </div>
                             </>
                         )}
