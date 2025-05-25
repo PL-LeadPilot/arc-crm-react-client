@@ -104,7 +104,7 @@ function EditMyInfoPage() {
     };
 
     return (
-        <div className="signup-container">
+        <div className="container">
             <h2>내 정보 수정</h2>
             <form onSubmit={handleUpdate}>
                 {fieldErrors.userCurrentPassword && <p className="error">{fieldErrors.userCurrentPassword}</p>}

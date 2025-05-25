@@ -3,15 +3,18 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    max-width: 400px;
+    width: 100%;
+    max-width: 600px;
     min-width: 300px;
+    background: #f9f9f9;
     padding: 20px;
-    background-color: #f5f5f5;
     border: 1px solid #ccc;
     border-radius: 5px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.05);
     text-align: center;
     font-family: "Roboto", sans-serif; /* Apply Roboto font */
 }
+
 
 .container input {
     border: 2px solid lightgrey;
