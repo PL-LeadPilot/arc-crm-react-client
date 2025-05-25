@@ -6,7 +6,7 @@ function Navbar({ onLogout }: { onLogout: () => void }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const isActive = (path: string) => location.pathname.includes(path) ? 'nav-button active' : 'nav-button';
+    const isActive = (path: string) => location.pathname === path ? 'nav-button active' : 'nav-button';
 
     return (
         <nav className="navbar">
