@@ -6,6 +6,7 @@ import '../styles/nav.css';
 import '../styles/page.css';
 import '../styles/table.css';
 import '../styles/slide-page.css';
+import Navbar from "./components/Navbar";
 
 interface Company {
     companyId: number;
@@ -52,15 +53,12 @@ function CompanyPage() {
     const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
-    const ITEMS_PER_PAGE = 19;
+    const ITEMS_PER_PAGE = 20;
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/login');
     };
-
-    const handleGoToUserPage = () => navigate('/user');
-    const handleGoToCompanyPage = () => navigate('/company');
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
@@ -278,16 +276,8 @@ function CompanyPage() {
     return (
         <div className="page">
             {/* Nav */}
-            <nav className="navbar">
-                <div className="nav-left">
-                    <button onClick={handleLogout} className="nav-button">로그아웃</button>
-                </div>
-                <div className="nav-right">
-                    <button onClick={handleGoToUserPage} className="nav-button">유저 페이지</button>
-                    <button onClick={handleGoToCompanyPage} className="nav-button active">고객사 페이지</button>
-                </div>
-            </nav>
-
+            <Navbar onLogout={handleLogout}
+            />
             {/* Search + Add */}
             <div className="content">
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
