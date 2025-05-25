@@ -388,22 +388,24 @@ function CompanyPage() {
                         {detailLoading ? (
                             <p>로딩 중...</p>
                         ) : editMode ? (
-                            <form onSubmit={handleCompanyUpdate}>
-                                <h2>고객사 수정</h2>
-                                <div className="form-row">
-                                    <label>고객사명</label>
-                                    <input type="text" value={companyDetail.companyName} onChange={(e) => setCompanyDetail({ ...companyDetail, companyName: e.target.value })} />
-                                </div>
-                                <div className="form-row">
-                                    <label>고객사 주소</label>
-                                    <input type="text" value={companyDetail.companyAddress} onChange={(e) => setCompanyDetail({ ...companyDetail, companyAddress: e.target.value })} />
-                                </div>
-                                <div className="form-row">
-                                    <label>유저 ID</label>
-                                    <input type="text" value={companyDetail.userId} onChange={(e) => setCompanyDetail({ ...companyDetail, userId: e.target.value })} />
-                                </div>
-                                <button type="submit">저장</button>
-                            </form>
+                            <div className="container">
+                                <form onSubmit={handleCompanyUpdate}>
+                                    <h2>고객사 수정</h2>
+                                    <div className="form-row">
+                                        <label>고객사명</label>
+                                        <input type="text" value={companyDetail.companyName} onChange={(e) => setCompanyDetail({ ...companyDetail, companyName: e.target.value })} />
+                                    </div>
+                                    <div className="form-row">
+                                        <label>고객사 주소</label>
+                                        <input type="text" value={companyDetail.companyAddress} onChange={(e) => setCompanyDetail({ ...companyDetail, companyAddress: e.target.value })} />
+                                    </div>
+                                    <div className="form-row">
+                                        <label>유저 ID</label>
+                                        <input type="text" value={companyDetail.userId} onChange={(e) => setCompanyDetail({ ...companyDetail, userId: e.target.value })} />
+                                    </div>
+                                    <button type="submit">저장</button>
+                                </form>
+                            </div>
                         ) : (
                             <div className="container">
                                 <h3>고객사 상세 정보</h3>
