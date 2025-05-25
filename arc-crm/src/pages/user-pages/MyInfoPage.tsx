@@ -97,7 +97,7 @@ function MyInfoPage() {
                     <button onClick={handleGoToCompanyPage} className="nav-button">고객사 페이지</button>
                 </div>
             </nav>
-            <div className="signup-container">
+            <div className="container">
                 <h2>내 정보 보기</h2>
                 <div className="form-row"><label>이름</label><span>{userName}</span></div>
                 <div className="form-row"><label>전화번호</label><span>{userPhone}</span></div>

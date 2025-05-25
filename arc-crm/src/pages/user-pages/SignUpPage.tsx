@@ -58,6 +58,7 @@ function SignUpPage() {
         localStorage.removeItem('token');
         navigate('/');
     };
+    const handleGoToMyPage = () => navigate('/user/me');
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -140,6 +141,8 @@ function SignUpPage() {
             <nav className="navbar" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <div className="nav-left">
                     <button onClick={handleLogout} className="nav-button">로그아웃</button>
+                    <button onClick={handleGoToMyPage} className="nav-button">내 정보 보기</button>
+
                 </div>
                 <div className="nav-right" style={{ display: 'flex', gap: '10px' }}>
                     <button onClick={handleGoToUserPage} className="nav-button">유저 페이지</button>
@@ -241,8 +244,9 @@ function SignUpPage() {
                         />
                     </div>
 
+
                     <div className="form-row">
-                        <label htmlFor="userRole">*권한:</label>
+                        <label htmlFor="userRole">*권한</label>
                         <select
                             id="userRole"
                             value={userRole}
