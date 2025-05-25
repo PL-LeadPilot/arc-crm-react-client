@@ -79,9 +79,18 @@ function CompanyPage() {
         if (!Array.isArray(list)) return [];
         return [...list].sort((a, b) => {
             for (const { key, order } of sortState) {
-                const aVal = a[key].toString().toLowerCase();
-                const bVal = b[key].toString().toLowerCase();
-                const cmp = aVal.localeCompare(bVal);
+                const aVal = a[key];
+                const bVal = b[key];
+
+                // 숫자일 경우 직접 비교
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    return order === 'asc' ? aVal - bVal : bVal - aVal;
+                }
+
+                // 문자열 비교
+                const aStr = aVal.toString().toLowerCase();
+                const bStr = bVal.toString().toLowerCase();
+                const cmp = aStr.localeCompare(bStr);
                 if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
             }
             return 0;
@@ -280,7 +289,7 @@ function CompanyPage() {
             />
             {/* Search + Add */}
             <div className="content">
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                <div className="content-box">
                     <input
                         type="text"
                         placeholder="고객사명 검색"
@@ -291,7 +300,7 @@ function CompanyPage() {
                     <button onClick={searchCompanies} className="nav-button">검색하기</button>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                <div className="content-box">
                     <input type="text" placeholder="고객사명" value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} style={{ flex: 1 }} />
                     <input type="text" placeholder="고객사 주소" value={newCompanyAddress} onChange={(e) => setNewCompanyAddress(e.target.value)} style={{ flex: 1 }} />
                     <input type="text" placeholder="유저 ID" value={newUserId} onChange={(e) => setNewUserId(e.target.value)} style={{ flex: 1 }} />
