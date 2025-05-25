@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/user-pages/LoginPage';
 import SignUpPage from './pages/user-pages/SignUpPage';
 import CompanyPage from './pages/CompanyPage';
+import CompanyUserPage from './pages/CompanyUserPage';
 import UserPage from './pages/user-pages/UserPage';
 import MyInfoPage from './pages/user-pages/MyInfoPage';
 import EditMyInfoPage from './pages/user-pages/EditMyInfoPage';
@@ -46,6 +47,7 @@ function App() {
             <Route path="/login" element={<PublicOnlyRoute element={<LoginPage />} />} />
             <Route path="/signup" element={<AdminRoute element={<SignUpPage />} />} />
             <Route path="/company" element={<PrivateRoute element={<CompanyPage />} />} />
+            <Route path="/company-user" element={<PrivateRoute element={<CompanyUserPage />} />} />
             <Route path="/user" element={<PrivateRoute element={<UserPage />} />} />
             <Route path="/user/me" element={<PrivateRoute element={<MyInfoPage />} />} />
             <Route path="/user/me/edit" element={<PrivateRoute element={<EditMyInfoPage />} />} />

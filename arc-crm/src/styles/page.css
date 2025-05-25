@@ -3,6 +3,13 @@
     font-size: 1.2rem;
 }
 
+.content-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    height: 38px;
+}
+
 .page {
     font-family: 'Roboto', sans-serif;
 }
@@ -36,4 +43,11 @@ h2 {
     padding: 4px 8px;
     color: #888;
     font-weight: bold;
+}
+
+.pagination {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
 }

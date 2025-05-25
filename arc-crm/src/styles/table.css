@@ -12,6 +12,11 @@
     font-size: 1rem;
 }
 
+.clicktable {
+    cursor: pointer;
+    color: blue;
+}
+
 .table th button {
     background: none;
     border: none;

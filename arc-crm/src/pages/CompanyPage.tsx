@@ -6,6 +6,7 @@ import '../styles/nav.css';
 import '../styles/page.css';
 import '../styles/table.css';
 import '../styles/slide-page.css';
+import Navbar from "./components/Navbar";
 
 interface Company {
     companyId: number;
@@ -52,15 +53,12 @@ function CompanyPage() {
     const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
-    const ITEMS_PER_PAGE = 19;
+    const ITEMS_PER_PAGE = 20;
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/login');
     };
-
-    const handleGoToUserPage = () => navigate('/user');
-    const handleGoToCompanyPage = () => navigate('/company');
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
@@ -81,9 +79,18 @@ function CompanyPage() {
         if (!Array.isArray(list)) return [];
         return [...list].sort((a, b) => {
             for (const { key, order } of sortState) {
-                const aVal = a[key].toString().toLowerCase();
-                const bVal = b[key].toString().toLowerCase();
-                const cmp = aVal.localeCompare(bVal);
+                const aVal = a[key];
+                const bVal = b[key];
+
+                // 숫자일 경우 직접 비교
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    return order === 'asc' ? aVal - bVal : bVal - aVal;
+                }
+
+                // 문자열 비교
+                const aStr = aVal.toString().toLowerCase();
+                const bStr = bVal.toString().toLowerCase();
+                const cmp = aStr.localeCompare(bStr);
                 if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
             }
             return 0;
@@ -278,19 +285,11 @@ function CompanyPage() {
     return (
         <div className="page">
             {/* Nav */}
-            <nav className="navbar">
-                <div className="nav-left">
-                    <button onClick={handleLogout} className="nav-button">로그아웃</button>
-                </div>
-                <div className="nav-right">
-                    <button onClick={handleGoToUserPage} className="nav-button">유저 페이지</button>
-                    <button onClick={handleGoToCompanyPage} className="nav-button active">고객사 페이지</button>
-                </div>
-            </nav>
-
+            <Navbar onLogout={handleLogout}
+            />
             {/* Search + Add */}
             <div className="content">
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                <div className="content-box">
                     <input
                         type="text"
                         placeholder="고객사명 검색"
@@ -301,10 +300,10 @@ function CompanyPage() {
                     <button onClick={searchCompanies} className="nav-button">검색하기</button>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                    <input type="text" placeholder="고객사명" value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} style={{ flex: 1 }} />
+                <div className="content-box">
+                    <input type="text" placeholder="*고객사명" value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} style={{ flex: 1 }} />
                     <input type="text" placeholder="고객사 주소" value={newCompanyAddress} onChange={(e) => setNewCompanyAddress(e.target.value)} style={{ flex: 1 }} />
-                    <input type="text" placeholder="유저 ID" value={newUserId} onChange={(e) => setNewUserId(e.target.value)} style={{ flex: 1 }} />
+                    <input type="text" placeholder="*유저 ID" value={newUserId} onChange={(e) => setNewUserId(e.target.value)} style={{ flex: 1 }} />
                     <button onClick={() => addCompany({ companyName: newCompanyName, companyAddress: newCompanyAddress, userId: newUserId })} className="nav-button">고객사 추가</button>
                 </div>
 
@@ -326,7 +325,7 @@ function CompanyPage() {
                             {sorted.map((c) => (
                                 <tr key={c.companyId}>
                                     <td>{c.companyId}</td>
-                                    <td style={{ cursor: 'pointer', color: 'blue' }} onClick={() => { setSelectedCompany(c); fetchCompanyDetails(c.companyId); }}>{c.companyName}</td>
+                                    <td className="clicktable" onClick={() => { setSelectedCompany(c); fetchCompanyDetails(c.companyId); }}>{c.companyName}</td>
                                     <td>{c.companyAddress}</td>
                                     <td>{c.userName}</td>
                                 </tr>
@@ -339,7 +338,7 @@ function CompanyPage() {
 
 
             {/* Pagination */}
-            <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <div className="pagination">
                 <button
                     onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                     disabled={page === 0}
@@ -390,9 +389,9 @@ function CompanyPage() {
                         ) : editMode ? (
                             <div className="container">
                                 <form onSubmit={handleCompanyUpdate}>
-                                    <h2>고객사 수정</h2>
+                                    <h2>고객사 정보 수정</h2>
                                     <div className="form-row">
-                                        <label>고객사명</label>
+                                        <label>*고객사명</label>
                                         <input type="text" value={companyDetail.companyName} onChange={(e) => setCompanyDetail({ ...companyDetail, companyName: e.target.value })} />
                                     </div>
                                     <div className="form-row">
@@ -400,7 +399,7 @@ function CompanyPage() {
                                         <input type="text" value={companyDetail.companyAddress} onChange={(e) => setCompanyDetail({ ...companyDetail, companyAddress: e.target.value })} />
                                     </div>
                                     <div className="form-row">
-                                        <label>유저 ID</label>
+                                        <label>*유저 ID</label>
                                         <input type="text" value={companyDetail.userId} onChange={(e) => setCompanyDetail({ ...companyDetail, userId: e.target.value })} />
                                     </div>
                                     <button type="submit">저장</button>
@@ -413,37 +412,39 @@ function CompanyPage() {
                                 <div className="form-row"><label>고객사 주소</label><span>{companyDetail.companyAddress}</span></div>
                                 <div className="form-row"><label>유저명</label><span>{companyDetail.userName}</span></div>
                                 <div className="form-row"><label>수정일</label><span>{new Date(companyDetail.updatedAt).toLocaleString()}</span></div>
-                                <button className="nav-button" onClick={() => setEditMode(true)}>수정</button>
-                                <div style={{ textAlign: 'right', padding: '10px' }}>
-                                    <span onClick={handleDelete} style={{ fontSize: '0.8rem', color: 'gray', textDecoration: 'underline', cursor: 'pointer' }}>고객사 정보 삭제하기</span>
+                                <button className="nav-button" onClick={() => setEditMode(true)}>고객사 정보 수정하기</button>
+                                <div className="container-delete">
+                                    <span onClick={handleDelete} >고객사 정보 삭제하기</span>
                                 </div>
                                 <div style={{ marginTop: '20px' }}>
                                     <h3>고객사 소속 사원 목록</h3>
                                     {companyUsers.length === 0 ? (
                                         <p>등록된 사원이 없습니다.</p>
                                     ) : (
-                                        <table className="table">
-                                            <thead>
-                                            <tr>
-                                                <th>이름</th>
-                                                <th>전화번호</th>
-                                                <th>이메일</th>
-                                                <th>직급</th>
-                                                <th>부서</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {companyUsers.map((user) => (
-                                                <tr key={user.companyUserId}>
-                                                    <td>{user.companyUserName}</td>
-                                                    <td>{user.companyUserPhone}</td>
-                                                    <td>{user.companyUserEmail}</td>
-                                                    <td>{user.companyUserPosition}</td>
-                                                    <td>{user.companyUserDivision}</td>
+                                        <div className="history">
+                                            <table className="table">
+                                                <thead className="header">
+                                                <tr>
+                                                    <th>이름</th>
+                                                    <th>전화번호</th>
+                                                    <th>이메일</th>
+                                                    <th>직급</th>
+                                                    <th>부서</th>
                                                 </tr>
-                                            ))}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody>
+                                                {companyUsers.map((user) => (
+                                                    <tr key={user.companyUserId}>
+                                                        <td>{user.companyUserName}</td>
+                                                        <td>{user.companyUserPhone}</td>
+                                                        <td>{user.companyUserEmail}</td>
+                                                        <td>{user.companyUserPosition}</td>
+                                                        <td>{user.companyUserDivision}</td>
+                                                    </tr>
+                                                ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     )}
                                 </div>
                             </div>

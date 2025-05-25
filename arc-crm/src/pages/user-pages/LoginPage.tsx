@@ -65,6 +65,7 @@ function LoginPage() {
                     value={userId}
                     onChange={(e) => setUserId(e.target.value)}
                     required
+                    style={{marginBottom: '10px'}}
                 />
                 <input
                     type="password"
@@ -72,6 +73,7 @@ function LoginPage() {
                     value={userPassword}
                     onChange={(e) => setUserPassword(e.target.value)}
                     required
+                    style={{marginBottom: '10px'}}
                 />
                 <button type="submit">로그인</button>
                 {error && <p className="error">{error}</p>}
