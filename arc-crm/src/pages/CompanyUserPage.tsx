@@ -17,6 +17,10 @@ interface CompanyUser {
     companyUserDivision: string;
 }
 
+interface CompanyUserDetail extends CompanyUser {
+    updatedAt: string;
+}
+
 type SortKey = keyof CompanyUser;
 
 type SortState = {
@@ -41,6 +45,10 @@ function CompanyUserPage() {
     const [newCompanyUserEmail, setNewCompanyUserEmail] = useState('');
     const [newCompanyUserPosition, setNewCompanyUserPosition] = useState('');
     const [newCompanyUserDivision, setNewCompanyUserDivision] = useState('');
+    const [selectedUser, setSelectedUser] = useState<CompanyUser | null>(null);
+    const [userDetail, setUserDetail] = useState<CompanyUserDetail | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [editMode, setEditMode] = useState(false);
     const ITEMS_PER_PAGE = 20;
 
     const handleLogout = () => {
@@ -86,7 +94,6 @@ function CompanyUserPage() {
         });
     };
 
-
     const fetchCompanyUsers = async () => {
         setLoading(true);
         try {
@@ -101,6 +108,29 @@ function CompanyUserPage() {
             setError((err as Error).message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchCompanyUserDetails = async (companyUserId: number) => {
+        setDetailLoading(true);
+        setError(null);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/companyUser/companyUserDetails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ companyUserId }),
+            });
+            if (!response.ok) throw new Error('상세 정보를 불러오지 못했습니다.');
+            const data = await response.json();
+            setUserDetail(data);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setDetailLoading(false);
         }
     };
 
@@ -166,6 +196,40 @@ function CompanyUserPage() {
             setLoading(false);
         }
     };
+
+    const handleCompanyUserUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!userDetail) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/companyUser', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    companyUserId: selectedUser?.companyUserId,
+                    companyId: parseInt(companyId, 10),
+                    companyUserName: userDetail.companyUserName,
+                    companyUserPhone: userDetail.companyUserPhone,
+                    companyUserEmail: userDetail.companyUserEmail,
+                    companyUserPosition: userDetail.companyUserPosition,
+                    companyUserDivision: userDetail.companyUserDivision,
+                }),
+            });
+
+            if (!response.ok) throw new Error('고객사 사원 정보 수정 실패');
+
+            await fetchCompanyUsers();
+            fetchCompanyUserDetails(selectedUser!.companyUserId);
+            setEditMode(false);
+        } catch (err) {
+            alert((err as Error).message);
+        }
+    };
+
 
     useEffect(() => {
         fetchCompanyUsers();
@@ -261,7 +325,15 @@ function CompanyUserPage() {
                             {sorted.map((user) => (
                                 <tr key={user.companyUserId}>
                                     <td>{user.companyUserId}</td>
-                                    <td>{user.companyUserName}</td>
+                                    <td
+                                        className="clicktable"
+                                        onClick={() => {
+                                            setSelectedUser(user);
+                                            fetchCompanyUserDetails(user.companyUserId);
+                                        }}
+                                    >
+                                        {user.companyUserName}
+                                    </td>
                                     <td>{user.companyName}</td>
                                     <td>{user.companyUserPhone}</td>
                                     <td>{user.companyUserEmail}</td>
@@ -271,6 +343,7 @@ function CompanyUserPage() {
                             ))}
                             </tbody>
                         </table>
+
                         {/* Pagination */}
                         <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
                             <button
@@ -311,6 +384,57 @@ function CompanyUserPage() {
                                 &gt;
                             </button>
                         </div>
+
+                        {selectedUser && userDetail && (
+                            <>
+                                <div className="slide-overlay" onClick={() => { setSelectedUser(null); setEditMode(false); }}></div>
+                                <div className="slide-panel open">
+                                    <button className="slide-close-button" onClick={() => { setSelectedUser(null); setEditMode(false); }}>×</button>
+                                    {detailLoading ? (
+                                        <p>로딩 중...</p>
+                                    ) : editMode ? (
+                                        <div className="container">
+                                            <form onSubmit={handleCompanyUserUpdate}>
+                                                <h2>고객사 사원 수정</h2>
+                                                <div className="form-row">
+                                                    <label>이름</label>
+                                                    <input type="text" value={userDetail.companyUserName} onChange={(e) => setUserDetail({ ...userDetail, companyUserName: e.target.value })} />
+                                                </div>
+                                                <div className="form-row">
+                                                    <label>전화번호</label>
+                                                    <input type="text" value={userDetail.companyUserPhone} onChange={(e) => setUserDetail({ ...userDetail, companyUserPhone: e.target.value })} />
+                                                </div>
+                                                <div className="form-row">
+                                                    <label>이메일</label>
+                                                    <input type="text" value={userDetail.companyUserEmail} onChange={(e) => setUserDetail({ ...userDetail, companyUserEmail: e.target.value })} />
+                                                </div>
+                                                <div className="form-row">
+                                                    <label>직급</label>
+                                                    <input type="text" value={userDetail.companyUserPosition} onChange={(e) => setUserDetail({ ...userDetail, companyUserPosition: e.target.value })} />
+                                                </div>
+                                                <div className="form-row">
+                                                    <label>부서</label>
+                                                    <input type="text" value={userDetail.companyUserDivision} onChange={(e) => setUserDetail({ ...userDetail, companyUserDivision: e.target.value })} />
+                                                </div>
+                                                <button type="submit">저장</button>
+                                            </form>
+                                        </div>
+                                    ) : (
+                                        <div className="container">
+                                            <h3>고객사 사원 상세 정보</h3>
+                                            <div className="form-row"><label>이름</label><span>{userDetail.companyUserName}</span></div>
+                                            <div className="form-row"><label>전화번호</label><span>{userDetail.companyUserPhone}</span></div>
+                                            <div className="form-row"><label>이메일</label><span>{userDetail.companyUserEmail}</span></div>
+                                            <div className="form-row"><label>직급</label><span>{userDetail.companyUserPosition}</span></div>
+                                            <div className="form-row"><label>부서</label><span>{userDetail.companyUserDivision}</span></div>
+                                            <div className="form-row"><label>수정일</label><span>{new Date(userDetail.updatedAt).toLocaleString()}</span></div>
+                                            <button className="nav-button" onClick={() => setEditMode(true)}>수정</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
                     </>
                 )}
             </div>
