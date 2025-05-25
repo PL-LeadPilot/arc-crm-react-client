@@ -1,0 +1,38 @@
+body, .user-page, .company-page {
+    font-family: 'Roboto', sans-serif;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2d2d2d;
+    padding: 1rem;
+    color: white;
+}
+
+.nav-left,
+.nav-right {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-button {
+    padding: 8px 12px;
+    background: #444;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    color: white;
+}
+
+.nav-button:hover {
+    background-color: #e0e0e0;
+}
+
+.nav-button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}

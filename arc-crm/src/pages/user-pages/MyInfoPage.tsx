@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../../styles/user-styles/SignUpPage.css';
+import '../../styles/container.css'
+import '../../styles/form.css'
+import '../../styles/nav.css'
+import '../../styles/page.css'
+import '../../styles/table.css'
 
 function getUserRole(): string | null {
     const token = localStorage.getItem('token');
@@ -81,19 +85,19 @@ function MyInfoPage() {
 
     return (
         <>
-            <nav className="navbar" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <nav className="navbar">
                 <div className="nav-left">
                     <button onClick={handleLogout} className="nav-button">로그아웃</button>
                     {userRole === 'ADMIN' && (
                         <button onClick={handleGoToSignUp} className="nav-button">유저 회원가입</button>
                     )}
                 </div>
-                <div className="nav-right" style={{ display: 'flex', gap: '10px' }}>
+                <div className="nav-right">
                     <button onClick={handleGoToUserPage} className="nav-button">유저 페이지</button>
                     <button onClick={handleGoToCompanyPage} className="nav-button">고객사 페이지</button>
                 </div>
             </nav>
-            <div className="signup-container">
+            <div className="container">
                 <h2>내 정보 보기</h2>
                 <div className="form-row"><label>이름</label><span>{userName}</span></div>
                 <div className="form-row"><label>전화번호</label><span>{userPhone}</span></div>

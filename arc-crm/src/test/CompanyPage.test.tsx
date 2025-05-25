@@ -1,46 +1,77 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { MemoryRouter } from 'react-router-dom';
 import CompanyPage from '../pages/CompanyPage';
+import { BrowserRouter } from 'react-router-dom';
 
-// navigate 모킹
-const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-    ...jest.requireActual('react-router-dom'),
-    useNavigate: () => mockNavigate,
-}));
-
-afterEach(() => {
-    jest.clearAllMocks();
-    localStorage.clear();
-});
+// Mock fetch
+global.fetch = jest.fn(() =>
+    Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [], totalPages: 1 }),
+    })
+) as jest.Mock;
 
 describe('CompanyPage', () => {
-    it('유저, 로그아웃 버튼 및 텍스트가 렌더링된다', () => {
-        render(<CompanyPage />, { wrapper: MemoryRouter });
+    beforeEach(() => {
+        (fetch as jest.Mock).mockClear();
+    });
+
+    test('renders navigation and search input', async () => {
+        render(
+            <BrowserRouter>
+                <CompanyPage />
+            </BrowserRouter>
+        );
 
         expect(screen.getByText('로그아웃')).toBeInTheDocument();
         expect(screen.getByText('유저 페이지')).toBeInTheDocument();
-        expect(screen.getByText('Company Page')).toBeInTheDocument();
-        expect(screen.getByText('여기에 고객사 리스트나 기능이 들어갑니다.')).toBeInTheDocument();
+        expect(screen.getByText('고객사 페이지')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('고객사명 검색')).toBeInTheDocument();
+        await waitFor(() => expect(fetch).toHaveBeenCalled());
     });
 
-    it('로그아웃 버튼 클릭 시 토큰 제거 및 /로 이동한다', () => {
-        localStorage.setItem('token', 'fake-token');
-        render(<CompanyPage />, { wrapper: MemoryRouter });
+    test('can type in search input and click search', async () => {
+        render(
+            <BrowserRouter>
+                <CompanyPage />
+            </BrowserRouter>
+        );
 
-        fireEvent.click(screen.getByText('로그아웃'));
+        const input = screen.getByPlaceholderText('고객사명 검색') as HTMLInputElement;
+        fireEvent.change(input, { target: { value: '테스트고객사' } });
+        expect(input.value).toBe('테스트고객사');
 
-        expect(localStorage.getItem('token')).toBeNull();
-        expect(mockNavigate).toHaveBeenCalledWith('/');
+        const button = screen.getByText('검색하기');
+        fireEvent.click(button);
+
+        await waitFor(() => expect(fetch).toHaveBeenCalled());
     });
 
-    it('유저 버튼 클릭 시 /user로 이동한다', () => {
-        render(<CompanyPage />, { wrapper: MemoryRouter });
+    test('displays loading and then table', async () => {
+        render(
+            <BrowserRouter>
+                <CompanyPage />
+            </BrowserRouter>
+        );
 
-        fireEvent.click(screen.getByText('유저 페이지'));
+        expect(screen.getByText('로딩 중...')).toBeInTheDocument();
+        await waitFor(() => expect(fetch).toHaveBeenCalled());
+    });
 
-        expect(mockNavigate).toHaveBeenCalledWith('/user');
+    test('displays error if fetch fails', async () => {
+        (fetch as jest.Mock).mockImplementationOnce(() =>
+            Promise.resolve({ ok: false })
+        );
+
+        render(
+            <BrowserRouter>
+                <CompanyPage />
+            </BrowserRouter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('고객사 정보를 불러오지 못했습니다.')).toBeInTheDocument();
+        });
     });
 });

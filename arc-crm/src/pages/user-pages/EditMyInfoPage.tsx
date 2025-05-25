@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../../styles/user-styles/SignUpPage.css';
+import '../../styles/container.css'
+import '../../styles/form.css'
+import '../../styles/nav.css'
+import '../../styles/page.css'
+import '../../styles/table.css'
 
 function EditMyInfoPage() {
     const navigate = useNavigate();
@@ -100,7 +104,7 @@ function EditMyInfoPage() {
     };
 
     return (
-        <div className="signup-container">
+        <div className="container">
             <h2>내 정보 수정</h2>
             <form onSubmit={handleUpdate}>
                 {fieldErrors.userCurrentPassword && <p className="error">{fieldErrors.userCurrentPassword}</p>}

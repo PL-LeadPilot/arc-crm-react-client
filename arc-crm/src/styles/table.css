@@ -1,0 +1,21 @@
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.table th,
+.table td {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 15px;
+    text-align: left;
+    font-size: 1rem;
+}
+
+.table th button {
+    background: none;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+}

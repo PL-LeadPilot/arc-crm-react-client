@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../../styles/user-styles/UserPage.css';
+import '../../styles/container.css'
+import '../../styles/form.css'
+import '../../styles/nav.css'
+import '../../styles/page.css'
+import '../../styles/table.css'
 
 interface User {
     userName: string;
@@ -36,6 +40,9 @@ function UserPage() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [sortState, setSortState] = useState<SortState[]>([]);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const ITEMS_PER_PAGE = 20;
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -43,16 +50,23 @@ function UserPage() {
     };
 
     const handleGoToSignUp = () => navigate('/signup');
-    const handleGoToCompany = () => navigate('/company');
+    const handleGoToUserPage = () => navigate('/user');
+    const handleGoToCompanyPage = () => navigate('/company');
     const handleGoToMyPage = () => navigate('/user/me');
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
             const existing = prev.find((s) => s.key === key);
             const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-            const newSort: SortState = { key, order: nextOrder as 'asc' | 'desc' };
+            const newSort: SortState = { key, order: nextOrder };
             return [newSort, ...prev.filter((s) => s.key !== key)];
         });
+    };
+
+    const getSortIcon = (key: SortKey) => {
+        const state = sortState.find((s) => s.key === key);
+        if (!state) return '';
+        return state.order === 'asc' ? ' ▲' : ' ▼';
     };
 
     const multiSort = (list: User[]) => {
@@ -69,17 +83,16 @@ function UserPage() {
 
     useEffect(() => {
         const fetchUsers = async () => {
-            const token = localStorage.getItem('token');
+            setLoading(true);
             try {
-                const response = await fetch('/user', {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/user?page=${page}&size=${ITEMS_PER_PAGE}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
-
                 });
                 if (!response.ok) throw new Error('유저 목록을 불러오지 못했습니다.');
                 const data = await response.json();
-                console.log(data); //
                 setUsers(data);
             } catch (err) {
                 setError((err as Error).message);
@@ -87,13 +100,15 @@ function UserPage() {
                 setLoading(false);
             }
         };
+
         fetchUsers();
-    }, []);
+    }, [page]);
+
 
     const sortedUsers = multiSort(users);
 
     return (
-        <div className="user-page">
+        <div className="page">
             <nav className="navbar">
                 <div className="nav-left">
                     <button onClick={handleLogout} className="nav-button">로그아웃</button>
@@ -103,36 +118,80 @@ function UserPage() {
                     <button onClick={handleGoToMyPage} className="nav-button">내 정보 보기</button>
                 </div>
                 <div className="nav-right">
-                    <button onClick={handleGoToCompany} className="nav-button">고객사 페이지</button>
+                    <button onClick={handleGoToUserPage} className="nav-button active">유저 페이지</button>
+                    <button onClick={handleGoToCompanyPage} className="nav-button">고객사 페이지</button>
                 </div>
             </nav>
 
-            <div className="user-content">
+            <div className="content">
                 {loading && <p>로딩 중...</p>}
                 {error && <p className="error">{error}</p>}
                 {!loading && (
-                    <table className="user-table">
-                        <thead>
-                        <tr>
-                            <th><button onClick={() => toggleSort('userName')}>이름</button></th>
-                            <th><button onClick={() => toggleSort('userEmail')}>이메일</button></th>
-                            <th><button onClick={() => toggleSort('userPhone')}>전화번호</button></th>
-                            <th><button onClick={() => toggleSort('userPosition')}>직책</button></th>
-                            <th><button onClick={() => toggleSort('userDivision')}>부서</button></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {sortedUsers.map((user, index) => (
-                            <tr key={index}>
-                                <td>{user.userName}</td>
-                                <td>{user.userEmail}</td>
-                                <td>{user.userPhone}</td>
-                                <td>{user.userPosition}</td>
-                                <td>{user.userDivision}</td>
+                    <>
+                        <table className="table">
+                            <thead>
+                            <tr>
+                                <th><button onClick={() => toggleSort('userName')}>이름{getSortIcon('userName')}</button></th>
+                                <th><button onClick={() => toggleSort('userEmail')}>이메일{getSortIcon('userEmail')}</button></th>
+                                <th><button onClick={() => toggleSort('userPhone')}>전화번호{getSortIcon('userPhone')}</button></th>
+                                <th><button onClick={() => toggleSort('userPosition')}>직책{getSortIcon('userPosition')}</button></th>
+                                <th><button onClick={() => toggleSort('userDivision')}>부서{getSortIcon('userDivision')}</button></th>
                             </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {sortedUsers.map((user, index) => (
+                                <tr key={index}>
+                                    <td>{user.userName}</td>
+                                    <td>{user.userEmail}</td>
+                                    <td>{user.userPhone}</td>
+                                    <td>{user.userPosition}</td>
+                                    <td>{user.userDivision}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+
+                        {/* Pagination */}
+                        <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                            <button
+                                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                                disabled={page === 0}
+                                className="page-button"
+                            >
+                                &lt;
+                            </button>
+
+                            {Array.from({ length: totalPages }, (_, i) => i).map((i) => {
+                                if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPage(i)}
+                                            className={`page-button ${page === i ? 'active' : ''}`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    );
+                                }
+                                if (
+                                    (i === 1 && page > 3) ||
+                                    (i === totalPages - 2 && page < totalPages - 4) ||
+                                    (Math.abs(i - page) === 2)
+                                ) {
+                                    return <span key={i} className="page-dots">...</span>;
+                                }
+                                return null;
+                            })}
+
+                            <button
+                                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+                                disabled={page === totalPages - 1}
+                                className="page-button"
+                            >
+                                &gt;
+                            </button>
+                        </div>
+                    </>
                 )}
             </div>
         </div>
