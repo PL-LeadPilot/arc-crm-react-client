@@ -1,4 +1,5 @@
 .container {
+    flex-shrink: 0;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -15,7 +16,6 @@
     font-family: "Roboto", sans-serif; /* Apply Roboto font */
 }
 
-
 .container input {
     border: 2px solid lightgrey;
     border-radius: 40px;
@@ -23,7 +23,6 @@
     width: 98%;
     height: 30px;
     text-indent: 7px;
-    margin-bottom: 8px;
 }
 
 .container button {
@@ -36,6 +35,15 @@
     outline: none;
     font-size: 14px;
     box-sizing: border-box;
+}
+
+.container-delete {
+    text-align: right;
+    padding: 10px;
+    font-size: 0.8rem;
+    color: gray;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .error {

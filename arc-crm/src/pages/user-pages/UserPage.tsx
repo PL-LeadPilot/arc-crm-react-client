@@ -152,7 +152,7 @@ function UserPage() {
                         </table>
 
                         {/* Pagination */}
-                        <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                        <div className="pagination">
                             <button
                                 onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                                 disabled={page === 0}

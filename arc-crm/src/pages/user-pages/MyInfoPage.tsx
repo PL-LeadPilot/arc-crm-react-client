@@ -106,12 +106,8 @@ function MyInfoPage() {
                 <div className="form-row"><label>부서</label><span>{userDivision}</span></div>
                 <div className="form-row"><label>수정일</label><span>{updatedAt}</span></div>
                 <button onClick={handleGoToEdit} className="nav-button">수정</button>
-                <div style={{ textAlign: 'right', padding: '10px' }}>
-                    <span
-                        onClick={handleDelete}
-                        style={{ fontSize: '0.8rem', color: 'gray', textDecoration: 'underline', cursor: 'pointer' }}>
-                        탈퇴하기
-                    </span>
+                <div className="container-delete">
+                    <span onClick={handleDelete}> 탈퇴하기 </span>
                 </div>
             </div>
 
