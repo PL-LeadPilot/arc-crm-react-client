@@ -232,8 +232,6 @@ function CompanyUserPage() {
     };
 
     const handleDelete = async () => {
-        if (!companyUserDetail) return;
-
         const confirmDelete = window.confirm('정말 고객사 사원을 삭제하시겠습니까?');
         if (!confirmDelete) return;
 
@@ -246,7 +244,7 @@ function CompanyUserPage() {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    companyUserId: companyUserDetail.companyUserId,
+                    companyUserId: selectedUser?.companyUserId,
                 }),
             });
 
