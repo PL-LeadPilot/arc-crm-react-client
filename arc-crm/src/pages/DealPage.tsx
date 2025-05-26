@@ -14,13 +14,14 @@ interface Deal {
     companyId: number;
     companyUserId: number;
     userName: string;
-    source: string;
-    status: string;
+    sourceType: string;
+    statusType: string;
     dealAt: string;
 }
 
 interface DealDetails extends Deal {
     updatedAt: string;
+    userId: string;
 }
 
 type SortKey = keyof Deal;
@@ -58,8 +59,8 @@ function DealPage() {
         companyId: '',
         companyUserId: '',
         userId: '',
-        source: 'INBOUND',
-        status: 'NEW',
+        sourceType: 'INBOUND',
+        statusType: 'NEW',
         dealAt: '',
     };
     const [newDeal, setNewDeal] = useState(initialDealState);
@@ -134,8 +135,7 @@ function DealPage() {
             if (!response.ok) throw new Error('상세 정보를 불러오지 못했습니다.');
 
             const data = await response.json();
-            const fullDetail = { ...selectedDeal!, ...data };
-            setDealDetail(fullDetail);
+            setDealDetail(data);
         } catch (err) {
             console.error((err as Error).message);
         } finally {
@@ -182,16 +182,16 @@ function DealPage() {
         companyId: number;
         companyUserId: number;
         userId: string;
-        source: string;
-        status: string;
+        sourceType: string;
+        statusType: string;
         dealAt: string;
     }) => {
         if (!dealData.dealName.trim()) { return setError('영업명은 필수입니다.'); }
         if (!dealData.companyId || isNaN(dealData.companyId)) { return setError('고객사 ID는 필수입니다.')}
         if (!dealData.companyUserId || isNaN(dealData.companyUserId)) { return setError('고객사 사원 ID는 필수입니다.')}
         if (!dealData.userId.trim()) { return setError('담당자 ID는 필수입니다.')}
-        if (!dealData.source.trim()) { return setError('유입 경로는 필수입니다.')}
-        if (!dealData.status.trim()) { return setError('영업 상태는 필수입니다.')}
+        if (!dealData.sourceType.trim()) { return setError('유입 경로는 필수입니다.')}
+        if (!dealData.statusType.trim()) { return setError('영업 상태는 필수입니다.')}
         if (!dealData.dealAt.trim()) { return setError('영업 날짜는 필수입니다.')}
 
         setLoading(true);
@@ -205,8 +205,8 @@ function DealPage() {
                 },
                 body: JSON.stringify({
                     ...dealData,
-                    sourceType: dealData.source,
-                    statusType: dealData.status
+                    sourceTypeType: dealData.sourceType,
+                    statusTypeType: dealData.statusType
                 }),
             });
 
@@ -221,6 +221,40 @@ function DealPage() {
             setError((err as Error).message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDealUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!dealDetail) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/deal', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    dealId: selectedDeal?.dealId,
+                    dealName: dealDetail.dealName,
+                    companyId: dealDetail.companyId,
+                    companyUserId: dealDetail.companyUserId,
+                    userId: dealDetail.userId,
+                    sourceType: dealDetail.sourceType,
+                    statusType: dealDetail.statusType,
+                    dealAt: dealDetail.dealAt,
+                }),
+            });
+
+            if (!response.ok) throw new Error('영업 이력 수정 실패');
+
+            await fetchDeals();
+            fetchDealDetails(dealDetail.dealId);
+            setEditMode(false);
+        } catch (err) {
+            alert((err as Error).message);
         }
     };
 
@@ -253,60 +287,58 @@ function DealPage() {
                     <button onClick={() => setShowAddForm(true)} >영업이력 추가</button>
                 </div>
 
-                {showAddForm && (
-                    <div className="overlay">
-                        <div className="container">
-                            <h3>영업 이력 추가</h3>
-                            <form>
-                                <div className="form-row">
-                                    <label>*영업명</label>
-                                    <input type="text" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required />
+                {selectedDeal && dealDetail && (
+                    <>
+                        <div className="slide-overlay" onClick={() => { setSelectedDeal(null); setEditMode(false); }}></div>
+                        <div className={`slide-panel open`}>
+                            <button className="slide-close-button" onClick={() => { setSelectedDeal(null); setEditMode(false); }}>×</button>
+                            {detailLoading ? (
+                                <p>로딩 중...</p>
+                            ) : editMode ? (
+                                <div className="container">
+                                    <form onSubmit={handleDealUpdate}>
+                                        <h2>영업 이력 수정</h2>
+                                        <div className="form-row"><label>영업명</label><input type="text" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
+                                        <div className="form-row"><label>고객사 ID</label><input type="text" value={dealDetail.companyId} readOnly /></div>
+                                        <div className="form-row"><label>고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} readOnly /></div>
+                                        <div className="form-row"><label>유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
+                                        <div className="form-row">
+                                            <label>유입경로</label>
+                                            <select value={dealDetail.sourceType} onChange={(e) => setDealDetail({ ...dealDetail, sourceType: e.target.value })}>
+                                                <option value="INBOUND">INBOUND</option>
+                                                <option value="OUTBOUND">OUTBOUND</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-row">
+                                            <label>영업 상태</label>
+                                            <select value={dealDetail.statusType} onChange={(e) => setDealDetail({ ...dealDetail, statusType: e.target.value })}>
+                                                <option value="NEW">NEW</option>
+                                                <option value="CONTACTED">CONTACTED</option>
+                                                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                                                <option value="COMPLETED">COMPLETED</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-row"><label>영업 일자</label><input type="date" value={dealDetail.dealAt} onChange={(e) => setDealDetail({ ...dealDetail, dealAt: e.target.value })} /></div>
+                                        <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
+                                        <button type="submit">저장</button>
+                                    </form>
                                 </div>
-                                <div className="form-row">
-                                    <label>*고객사 ID</label>
-                                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required />
+                            ) : (
+                                <div className="container">
+                                    <h3>영업 상세 정보</h3>
+                                    <div className="form-row"><label>영업명</label><span>{dealDetail.dealName}</span></div>
+                                    <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
+                                    <div className="form-row"><label>고객사 사원 ID</label><span>{dealDetail.companyUserId}</span></div>
+                                    <div className="form-row"><label>담당자</label><span>{dealDetail.userName}</span></div>
+                                    <div className="form-row"><label>유입경로</label><span>{dealDetail.sourceType}</span></div>
+                                    <div className="form-row"><label>영업 상태</label><span>{dealDetail.statusType}</span></div>
+                                    <div className="form-row"><label>영업 일자</label><span>{new Date(dealDetail.dealAt).toLocaleDateString()}</span></div>
+                                    <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
+                                    <button className="nav-button" onClick={() => setEditMode(true)}>영업 이력 수정하기</button>
                                 </div>
-                                <div className="form-row">
-                                    <label>*고객사 사원 ID</label>
-                                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required />
-                                </div>
-                                <div className="form-row">
-                                    <label>*담당자 ID</label>
-                                    <input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value })} required />
-                                </div>
-                                <div className="form-row">
-                                    <label>*유입경로</label>
-                                    <select value={newDeal.source} onChange={(e) => setNewDeal({ ...newDeal, source: e.target.value })}>
-                                        <option value="INBOUND">INBOUND</option>
-                                        <option value="OUTBOUND">OUTBOUND</option>
-                                    </select>
-                                </div>
-                                <div className="form-row">
-                                    <label>*영업 상태</label>
-                                    <select value={newDeal.status} onChange={(e) => setNewDeal({ ...newDeal, status: e.target.value })}>
-                                        <option value="NEW">NEW</option>
-                                        <option value="CONTACTED">CONTACTED</option>
-                                        <option value="IN_PROGRESS">IN_PROGRESS</option>
-                                        <option value="COMPLETED">COMPLETED</option>
-                                    </select>
-                                </div>
-                                <div className="form-row">
-                                    <label>영업 일자</label>
-                                    <input type="date" value={newDeal.dealAt} onChange={(e) => setNewDeal({ ...newDeal, dealAt: e.target.value })} />
-                                </div>
-                                <div className="form-row">
-                                    <button type="submit" onClick={() =>
-                                        addDeal({
-                                            ...newDeal,
-                                            companyId: parseInt(newDeal.companyId, 10) || 0,
-                                            companyUserId: parseInt(newDeal.companyUserId, 10) || 0,
-                                        })
-                                    } >영업이력 추가</button>
-                                    <button type="button" onClick={() => { setShowAddForm(false); setNewDeal(initialDealState); }} className="nav-button">취소</button>
-                                </div>
-                            </form>
+                            )}
                         </div>
-                    </div>
+                    </>
                 )}
 
                 {/* Table */}
@@ -322,8 +354,8 @@ function DealPage() {
                             <th><button onClick={() => toggleSort('companyId')}>고객사 ID{getSortIcon('companyId')}</button></th>
                             <th><button onClick={() => toggleSort('companyUserId')}>고객사 사원 ID{getSortIcon('companyUserId')}</button></th>
                             <th><button onClick={() => toggleSort('userName')}>담당자{getSortIcon('userName')}</button></th>
-                            <th><button onClick={() => toggleSort('source')}>유입 경로{getSortIcon('source')}</button></th>
-                            <th><button onClick={() => toggleSort('status')}>영업 상태{getSortIcon('status')}</button></th>
+                            <th><button onClick={() => toggleSort('sourceType')}>유입 경로{getSortIcon('sourceType')}</button></th>
+                            <th><button onClick={() => toggleSort('statusType')}>영업 상태{getSortIcon('statusType')}</button></th>
                             <th><button onClick={() => toggleSort('dealAt')}>영업 날짜{getSortIcon('dealAt')}</button></th>
                         </tr>
                         </thead>
@@ -343,8 +375,8 @@ function DealPage() {
                                 <td>{deal.companyId}</td>
                                 <td>{deal.companyUserId}</td>
                                 <td>{deal.userName}</td>
-                                <td>{deal.source}</td>
-                                <td>{deal.status}</td>
+                                <td>{deal.sourceType}</td>
+                                <td>{deal.statusType}</td>
                                 <td>{new Date(deal.dealAt).toLocaleDateString()}</td>
                             </tr>
                         ))}
@@ -380,10 +412,37 @@ function DealPage() {
             {selectedDeal && dealDetail && (
                 <>
                     <div className="slide-overlay" onClick={() => { setSelectedDeal(null); setEditMode(false); }}></div>
-                    <div className="slide-panel open">
+                    <div className={`slide-panel open`}>
                         <button className="slide-close-button" onClick={() => { setSelectedDeal(null); setEditMode(false); }}>×</button>
                         {detailLoading ? (
                             <p>로딩 중...</p>
+                        ) : editMode ? (
+                            <div className="container">
+                                <form onSubmit={handleDealUpdate}>
+                                    <h2>영업 이력 수정</h2>
+                                    <div className="form-row"><label>영업명</label><input type="text" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
+                                    <div className="form-row"><label>고객사 ID</label><input type="text" value={dealDetail.companyId} readOnly /></div>
+                                    <div className="form-row"><label>고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} /></div>
+                                    <div className="form-row"><label>유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
+                                    <div className="form-row"><label>유입 경로</label>
+                                        <select value={dealDetail.sourceType} onChange={(e) => setDealDetail({ ...dealDetail, sourceType: e.target.value })}>
+                                            <option value="INBOUND">INBOUND</option>
+                                            <option value="OUTBOUND">OUTBOUND</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-row"><label>영업 상태</label>
+                                        <select value={dealDetail.statusType} onChange={(e) => setDealDetail({ ...dealDetail, statusType: e.target.value })}>
+                                            <option value="NEW">NEW</option>
+                                            <option value="CONTACTED">CONTACTED</option>
+                                            <option value="IN_PROGRESS">IN_PROGRESS</option>
+                                            <option value="COMPLETED">COMPLETED</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-row"><label>영업 일자</label><input type="date" value={dealDetail.dealAt} onChange={(e) => setDealDetail({ ...dealDetail, dealAt: e.target.value })} /></div>
+                                    <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
+                                    <button type="submit">저장</button>
+                                </form>
+                            </div>
                         ) : (
                             <div className="container">
                                 <h3>영업 상세 정보</h3>
@@ -391,10 +450,11 @@ function DealPage() {
                                 <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
                                 <div className="form-row"><label>고객사 사원 ID</label><span>{dealDetail.companyUserId}</span></div>
                                 <div className="form-row"><label>담당자</label><span>{dealDetail.userName}</span></div>
-                                <div className="form-row"><label>유입경로</label><span>{dealDetail.source}</span></div>
-                                <div className="form-row"><label>영업 상태</label><span>{dealDetail.status}</span></div>
+                                <div className="form-row"><label>유입 경로</label><span>{dealDetail.sourceType}</span></div>
+                                <div className="form-row"><label>영업 상태</label><span>{dealDetail.statusType}</span></div>
                                 <div className="form-row"><label>영업 일자</label><span>{new Date(dealDetail.dealAt).toLocaleDateString()}</span></div>
                                 <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
+                                <button className="nav-button" onClick={() => setEditMode(true)}>영업 이력 수정하기</button>
                             </div>
                         )}
                     </div>
