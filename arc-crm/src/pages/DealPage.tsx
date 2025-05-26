@@ -34,6 +34,7 @@ function DealPage() {
     const [searchCompanyUserName, setSearchCompanyUserName] = useState('');
     const [searchDealName, setSearchDealName] = useState('');
     const [searchMode, setSearchMode] = useState(false);
+    const [showAddForm, setShowAddForm] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
@@ -43,6 +44,17 @@ function DealPage() {
         localStorage.removeItem('token');
         navigate('/login');
     };
+
+    const initialDealState = {
+        dealName: '',
+        companyId: '',
+        companyUserId: '',
+        userId: '',
+        source: 'INBOUND',
+        status: 'NEW',
+        dealAt: '',
+    };
+    const [newDeal, setNewDeal] = useState(initialDealState);
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
@@ -131,6 +143,53 @@ function DealPage() {
         }
     };
 
+    const addDeal = async (dealData: {
+        dealName: string;
+        companyId: number;
+        companyUserId: number;
+        userId: string;
+        source: string;
+        status: string;
+        dealAt: string;
+    }) => {
+        if (!dealData.dealName.trim()) { return setError('영업명은 필수입니다.'); }
+        if (!dealData.companyId || isNaN(dealData.companyId)) { return setError('고객사 ID는 필수입니다.')}
+        if (!dealData.companyUserId || isNaN(dealData.companyUserId)) { return setError('고객사 사원 ID는 필수입니다.')}
+        if (!dealData.userId.trim()) { return setError('담당자 ID는 필수입니다.')}
+        if (!dealData.source.trim()) { return setError('유입 경로는 필수입니다.')}
+        if (!dealData.status.trim()) { return setError('영업 상태는 필수입니다.')}
+        if (!dealData.dealAt.trim()) { return setError('영업 날짜는 필수입니다.')}
+
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/deal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    ...dealData,
+                    sourceType: dealData.source,
+                    statusType: dealData.status
+                }),
+            });
+
+            if (!response.ok) throw new Error('영업 이력 등록에 실패했습니다.');
+
+            alert('영업 이력이 추가되었습니다.');
+            setShowAddForm(false);
+            await fetchDeals();
+            setNewDeal(initialDealState);
+            setError(null);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (searchMode) {
             searchDeals().then(() => {});
@@ -156,8 +215,65 @@ function DealPage() {
                     <input type="text" placeholder="고객사명" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} style={{ flex: 1 }} />
                     <input type="text" placeholder="고객사 사원명" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} style={{ flex: 1 }} />
                     <input type="text" placeholder="영업명" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} style={{ flex: 1 }} />
-                    <button onClick={() => { setPage(0); searchDeals(); }} className="nav-button">검색하기</button>
+                    <button onClick={() => { setPage(0); searchDeals(); }} >검색하기</button>
+                    <button onClick={() => setShowAddForm(true)} >영업이력 추가</button>
                 </div>
+
+                {showAddForm && (
+                    <div className="overlay">
+                        <div className="container">
+                            <h3>영업 이력 추가</h3>
+                            <form>
+                                <div className="form-row">
+                                    <label>*영업명</label>
+                                    <input type="text" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required />
+                                </div>
+                                <div className="form-row">
+                                    <label>*고객사 ID</label>
+                                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required />
+                                </div>
+                                <div className="form-row">
+                                    <label>*고객사 사원 ID</label>
+                                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required />
+                                </div>
+                                <div className="form-row">
+                                    <label>*담당자 ID</label>
+                                    <input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value })} required />
+                                </div>
+                                <div className="form-row">
+                                    <label>*유입경로</label>
+                                    <select value={newDeal.source} onChange={(e) => setNewDeal({ ...newDeal, source: e.target.value })}>
+                                        <option value="INBOUND">INBOUND</option>
+                                        <option value="OUTBOUND">OUTBOUND</option>
+                                    </select>
+                                </div>
+                                <div className="form-row">
+                                    <label>*영업 상태</label>
+                                    <select value={newDeal.status} onChange={(e) => setNewDeal({ ...newDeal, status: e.target.value })}>
+                                        <option value="NEW">NEW</option>
+                                        <option value="CONTACTED">CONTACTED</option>
+                                        <option value="IN_PROGRESS">IN_PROGRESS</option>
+                                        <option value="COMPLETED">COMPLETED</option>
+                                    </select>
+                                </div>
+                                <div className="form-row">
+                                    <label>영업 일자</label>
+                                    <input type="date" value={newDeal.dealAt} onChange={(e) => setNewDeal({ ...newDeal, dealAt: e.target.value })} />
+                                </div>
+                                <div className="form-row">
+                                    <button type="submit" onClick={() =>
+                                        addDeal({
+                                            ...newDeal,
+                                            companyId: parseInt(newDeal.companyId, 10) || 0,
+                                            companyUserId: parseInt(newDeal.companyUserId, 10) || 0,
+                                        })
+                                    } >영업이력 추가</button>
+                                    <button type="button" onClick={() => { setShowAddForm(false); setNewDeal(initialDealState); }} className="nav-button">취소</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
 
                 {/* Table */}
                 {loading && <p>로딩 중...</p>}
@@ -172,7 +288,7 @@ function DealPage() {
                             <th><button onClick={() => toggleSort('companyId')}>고객사 ID{getSortIcon('companyId')}</button></th>
                             <th><button onClick={() => toggleSort('companyUserId')}>고객사 사원 ID{getSortIcon('companyUserId')}</button></th>
                             <th><button onClick={() => toggleSort('userName')}>담당자{getSortIcon('userName')}</button></th>
-                            <th><button onClick={() => toggleSort('source')}>영업 경로{getSortIcon('source')}</button></th>
+                            <th><button onClick={() => toggleSort('source')}>유입 경로{getSortIcon('source')}</button></th>
                             <th><button onClick={() => toggleSort('status')}>영업 상태{getSortIcon('status')}</button></th>
                             <th><button onClick={() => toggleSort('dealAt')}>영업 날짜{getSortIcon('dealAt')}</button></th>
                         </tr>
