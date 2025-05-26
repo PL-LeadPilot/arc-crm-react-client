@@ -40,7 +40,8 @@ function CompanyPage() {
     const navigate = useNavigate();
     const [companies, setCompanies] = useState<Company[]>([]);
     const [sortState, setSortState] = useState<SortState[]>([]);
-    const [search, setSearch] = useState('');
+    const [searchComapnyName, setSearchCompanyName] = useState('');
+    const [searchMode, setSearchMode] = useState(false); // 검색 중 여부
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
@@ -53,7 +54,6 @@ function CompanyPage() {
     const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
-    const ITEMS_PER_PAGE = 20;
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -64,8 +64,14 @@ function CompanyPage() {
         setSortState((prev) => {
             const existing = prev.find((s) => s.key === key);
             const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-            const newSort: SortState = { key, order: nextOrder };
-            return [newSort, ...prev.filter((s) => s.key !== key)];
+
+            // 기존 key가 있으면 순서 유지, 정렬 방향만 변경
+            if (existing) {
+                return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
+            }
+
+            // 새로 추가된 정렬 기준은 뒤에 붙이기
+            return [...prev, { key, order: nextOrder }];
         });
     };
 
@@ -76,22 +82,20 @@ function CompanyPage() {
     };
 
     const multiSort = (list: Company[]) => {
-        if (!Array.isArray(list)) return [];
+        if (!Array.isArray(list) || sortState.length === 0) return list;
+
         return [...list].sort((a, b) => {
             for (const { key, order } of sortState) {
                 const aVal = a[key];
                 const bVal = b[key];
 
-                // 숫자일 경우 직접 비교
                 if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    return order === 'asc' ? aVal - bVal : bVal - aVal;
+                    const diff = aVal - bVal;
+                    if (diff !== 0) return order === 'asc' ? diff : -diff;
+                } else {
+                    const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+                    if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
                 }
-
-                // 문자열 비교
-                const aStr = aVal.toString().toLowerCase();
-                const bStr = bVal.toString().toLowerCase();
-                const cmp = aStr.localeCompare(bStr);
-                if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
             }
             return 0;
         });
@@ -101,12 +105,11 @@ function CompanyPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`/company?page=${page}&size=${ITEMS_PER_PAGE}`, {
+            const response = await fetch(`/company?page=${page}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('고객사 정보를 불러오지 못했습니다.');
             const data = await response.json();
-            if (!Array.isArray(data.content)) throw new Error('받은 데이터가 배열이 아닙니다.');
             setCompanies(data.content);
             setTotalPages(data.totalPages);
             setError(null);
@@ -152,23 +155,30 @@ function CompanyPage() {
     };
 
     const searchCompanies = async () => {
-        if (!search.trim()) {
-            fetchCompanies();
+        const noSearch = !searchComapnyName.trim();
+        if (noSearch) {
+            setSearchMode(false);
+            await fetchCompanies();
             return;
         }
 
         setLoading(true);
         try {
+            const params = new URLSearchParams();
+            if (searchComapnyName) params.append('companyName', searchComapnyName);
+            params.append('page', page.toString());
+
             const token = localStorage.getItem('token');
-            const response = await fetch(`/company/search?companyName=${encodeURIComponent(search)}&page=0`, {
+            const response = await fetch(`/company/search?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+
             if (!response.ok) throw new Error('검색에 실패했습니다.');
             const data = await response.json();
-            if (!Array.isArray(data.content)) throw new Error('받은 데이터가 배열이 아닙니다.');
             setCompanies(data.content);
             setTotalPages(data.totalPages);
-            setPage(0);
+            setSearchMode(true);
+            setError(null);
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -277,27 +287,29 @@ function CompanyPage() {
     };
 
     useEffect(() => {
-        fetchCompanies();
+        if (searchMode) {
+            searchCompanies().then(() => {});
+        } else {
+            fetchCompanies().then(() => {});
+        }
     }, [page]);
+
+    useEffect(() => {
+        const allEmpty = !searchComapnyName.trim();
+        if (allEmpty) setSearchMode(false);
+    }, [searchComapnyName]);
 
     const sorted = multiSort(companies);
 
     return (
         <div className="page">
             {/* Nav */}
-            <Navbar onLogout={handleLogout}
-            />
+            <Navbar onLogout={handleLogout} />
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
-                    <input
-                        type="text"
-                        placeholder="고객사명 검색"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        style={{ flex: 1, padding: '5px' }}
-                    />
-                    <button onClick={searchCompanies} className="nav-button">검색하기</button>
+                    <input type="text" placeholder="고객사명 검색" value={searchComapnyName} onChange={(e) => setSearchCompanyName(e.target.value)} style={{ flex: 1 }} />
+                    <button onClick={() => { setPage(0); searchCompanies(); }}  className="nav-button"> 검색하기 </button>
                 </div>
 
                 <div className="content-box">
@@ -318,7 +330,7 @@ function CompanyPage() {
                                 <th><button onClick={() => toggleSort('companyId')}>고객사 ID{getSortIcon('companyId')}</button></th>
                                 <th><button onClick={() => toggleSort('companyName')}>고객사명{getSortIcon('companyName')}</button></th>
                                 <th><button onClick={() => toggleSort('companyAddress')}>고객사 주소{getSortIcon('companyAddress')}</button></th>
-                                <th><button onClick={() => toggleSort('userId')}>유저명{getSortIcon('userName')}</button></th>
+                                <th><button onClick={() => toggleSort('userName')}>담당자{getSortIcon('userName')}</button></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -335,7 +347,6 @@ function CompanyPage() {
                     </>
                 )}
             </div>
-
 
             {/* Pagination */}
             <div className="pagination">
@@ -410,7 +421,7 @@ function CompanyPage() {
                                 <h3>고객사 상세 정보</h3>
                                 <div className="form-row"><label>고객사명</label><span>{companyDetail.companyName}</span></div>
                                 <div className="form-row"><label>고객사 주소</label><span>{companyDetail.companyAddress}</span></div>
-                                <div className="form-row"><label>유저명</label><span>{companyDetail.userName}</span></div>
+                                <div className="form-row"><label>담당자</label><span>{companyDetail.userName}</span></div>
                                 <div className="form-row"><label>수정일</label><span>{new Date(companyDetail.updatedAt).toLocaleString()}</span></div>
                                 <button className="nav-button" onClick={() => setEditMode(true)}>고객사 정보 수정하기</button>
                                 <div className="container-delete">

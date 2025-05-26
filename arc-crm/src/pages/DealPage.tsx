@@ -30,6 +30,10 @@ function DealPage() {
     const navigate = useNavigate();
     const [deals, setDeals] = useState<Deal[]>([]);
     const [sortState, setSortState] = useState<SortState[]>([]);
+    const [searchCompanyName, setSearchCompanyName] = useState('');
+    const [searchCompanyUserName, setSearchCompanyUserName] = useState('');
+    const [searchDealName, setSearchDealName] = useState('');
+    const [searchMode, setSearchMode] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
@@ -44,31 +48,24 @@ function DealPage() {
         setSortState((prev) => {
             const existing = prev.find((s) => s.key === key);
             const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-
-            // 기존 key가 있으면 순서 유지, 정렬 방향만 변경
             if (existing) {
                 return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
             }
-
-            // 새로 추가된 정렬 기준은 뒤에 붙이기
             return [...prev, { key, order: nextOrder }];
         });
     };
 
     const getSortIcon = (key: SortKey) => {
         const state = sortState.find((s) => s.key === key);
-        if (!state) return '';
-        return state.order === 'asc' ? ' ▲' : ' ▼';
+        return state ? (state.order === 'asc' ? ' ▲' : ' ▼') : '';
     };
 
     const multiSort = (list: Deal[]) => {
         if (!Array.isArray(list) || sortState.length === 0) return list;
-
         return [...list].sort((a, b) => {
             for (const { key, order } of sortState) {
                 const aVal = a[key];
                 const bVal = b[key];
-
                 if (typeof aVal === 'number' && typeof bVal === 'number') {
                     const diff = aVal - bVal;
                     if (diff !== 0) return order === 'asc' ? diff : -diff;
@@ -89,9 +86,7 @@ function DealPage() {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('영업 이력을 불러오지 못했습니다.');
-
             const data = await response.json();
-            if (!Array.isArray(data.content)) throw new Error('받은 데이터가 배열이 아닙니다.');
             setDeals(data.content);
             setTotalPages(data.totalPages);
             setError(null);
@@ -102,23 +97,73 @@ function DealPage() {
         }
     };
 
+    const searchDeals = async () => {
+        const noSearch = !searchCompanyName.trim() && !searchCompanyUserName.trim() && !searchDealName.trim();
+        if (noSearch) {
+            setSearchMode(false);
+            await fetchDeals();
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (searchCompanyName.trim()) params.append('companyName', searchCompanyName);
+            if (searchCompanyUserName.trim()) params.append('companyUserName', searchCompanyUserName);
+            if (searchDealName.trim()) params.append('dealName', searchDealName);
+            params.append('page', page.toString());
+
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/deal/search?${params.toString()}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!response.ok) throw new Error('검색에 실패했습니다.');
+            const data = await response.json();
+            setDeals(data.content);
+            setTotalPages(data.totalPages);
+            setSearchMode(true);
+            setError(null);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        fetchDeals();
+        if (searchMode) {
+            searchDeals().then(() => {});
+        } else {
+            fetchDeals().then(() => {});
+        }
     }, [page]);
 
-    const sortedDeals = multiSort(deals);
+    useEffect(() => {
+        const allEmpty = !searchCompanyName.trim() && !searchCompanyUserName.trim() && !searchDealName.trim();
+        if (allEmpty) setSearchMode(false);
+    }, [searchCompanyName, searchCompanyUserName, searchDealName]);
+
+    const sorted = multiSort(deals);
 
     return (
         <div className="page">
-            {/* Nav */}
             <Navbar onLogout={handleLogout} />
 
-
+            {/* Search + Add */}
             <div className="content">
+                <div className="content-box">
+                    <input type="text" placeholder="고객사명" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} style={{ flex: 1 }} />
+                    <input type="text" placeholder="고객사 사원명" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} style={{ flex: 1 }} />
+                    <input type="text" placeholder="영업명" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} style={{ flex: 1 }} />
+                    <button onClick={() => { setPage(0); searchDeals(); }} className="nav-button">검색하기</button>
+                </div>
+
                 {/* Table */}
                 {loading && <p>로딩 중...</p>}
                 {error && <p className="error">{error}</p>}
                 {!loading && (
+                    <>
                     <table className="table">
                         <thead>
                         <tr>
@@ -133,7 +178,7 @@ function DealPage() {
                         </tr>
                         </thead>
                         <tbody>
-                        {sortedDeals.map((deal) => (
+                        {sorted.map((deal) => (
                             <tr key={deal.dealId}>
                                 <td>{deal.dealId}</td>
                                 <td>{deal.dealName}</td>
@@ -147,27 +192,17 @@ function DealPage() {
                         ))}
                         </tbody>
                     </table>
+                    </>
                 )}
             </div>
 
             {/* Pagination */}
             <div className="pagination">
-                <button
-                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-                    disabled={page === 0}
-                    className="page-button"
-                >
-                    &lt;
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i).map((i) => {
+                <button onClick={() => setPage((prev) => Math.max(prev - 1, 0))} disabled={page === 0} className="page-button">&lt;</button>
+                {Array.from({ length: totalPages }, (_, i) => {
                     if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
                         return (
-                            <button
-                                key={i}
-                                onClick={() => setPage(i)}
-                                className={`page-button ${page === i ? 'active' : ''}`}
-                            >
+                            <button key={i} onClick={() => setPage(i)} className={`page-button ${page === i ? 'active' : ''}`}>
                                 {i + 1}
                             </button>
                         );
@@ -181,14 +216,7 @@ function DealPage() {
                     }
                     return null;
                 })}
-
-                <button
-                    onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
-                    disabled={page === totalPages - 1}
-                    className="page-button"
-                >
-                    &gt;
-                </button>
+                <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))} disabled={page === totalPages - 1} className="page-button">&gt;</button>
             </div>
         </div>
     );

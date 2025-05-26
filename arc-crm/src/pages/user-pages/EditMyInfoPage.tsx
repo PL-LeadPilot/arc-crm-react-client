@@ -19,6 +19,15 @@ function EditMyInfoPage() {
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+    const handleGoToSignUp = () => navigate('/signup');
+    const handleGoToUserPage = () => navigate('/user');
+    const handleGoToCompanyPage = () => navigate('/company');
+    const handleGoToEdit = () => navigate('/user/me/edit');
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/');
+    };
+
     useEffect(() => {
         const fetchMyInfo = async () => {
             const token = localStorage.getItem('token');
@@ -104,100 +113,111 @@ function EditMyInfoPage() {
     };
 
     return (
-        <div className="container">
-            <h2>내 정보 수정</h2>
-            <form onSubmit={handleUpdate}>
-                {fieldErrors.userCurrentPassword && <p className="error">{fieldErrors.userCurrentPassword}</p>}
-                <div className="form-row">
-                    <label htmlFor="userCurrentPassword">*현재 비밀번호</label>
-                    <input
-                        id="userCurrentPassword"
-                        type="password"
-                        placeholder="입력하셔야 수정됩니다."
-                        value={userCurrentPassword}
-                        onChange={(e) => setUserCurrentPassword(e.target.value)}
-                        required
-                    />
+        <>
+            <nav className="navbar">
+                <div className="nav-left">
+                    <button onClick={handleLogout} className="nav-button">로그아웃</button>
                 </div>
-
-                <div className="form-row">
-                    <label htmlFor="userNewPassword">새 비밀번호 (선택)</label>
-                    <input
-                        id="userNewPassword"
-                        type="password"
-                        placeholder="7자 이상 20자 이하 영문/숫자"
-                        value={userNewPassword}
-                        onChange={(e) => setUserNewPassword(e.target.value)}
-                    />
+                <div className="nav-right">
+                    <button onClick={handleGoToUserPage} className="nav-button">유저 페이지</button>
+                    <button onClick={handleGoToCompanyPage} className="nav-button">고객사 페이지</button>
                 </div>
+            </nav>
+            <div className="container">
+                <h2>내 정보 수정</h2>
+                <form onSubmit={handleUpdate}>
+                    {fieldErrors.userCurrentPassword && <p className="error">{fieldErrors.userCurrentPassword}</p>}
+                    <div className="form-row">
+                        <label htmlFor="userCurrentPassword">*현재 비밀번호</label>
+                        <input
+                            id="userCurrentPassword"
+                            type="password"
+                            placeholder="입력하셔야 수정됩니다."
+                            value={userCurrentPassword}
+                            onChange={(e) => setUserCurrentPassword(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                {fieldErrors.userEmail && <p className="error">{fieldErrors.userEmail}</p>}
-                <div className="form-row">
-                    <label htmlFor="userEmail">이메일</label>
-                    <input
-                        id="userEmail"
-                        type="email"
-                        placeholder="test@test.com"
-                        value={userEmail}
-                        onChange={(e) => setUserEmail(e.target.value)}
-                        required
-                    />
-                </div>
+                    <div className="form-row">
+                        <label htmlFor="userNewPassword">새 비밀번호 (선택)</label>
+                        <input
+                            id="userNewPassword"
+                            type="password"
+                            placeholder="7자 이상 20자 이하 영문/숫자"
+                            value={userNewPassword}
+                            onChange={(e) => setUserNewPassword(e.target.value)}
+                        />
+                    </div>
 
-                {fieldErrors.userName && <p className="error">{fieldErrors.userName}</p>}
-                <div className="form-row">
-                    <label htmlFor="userName">이름</label>
-                    <input
-                        id="userName"
-                        type="text"
-                        placeholder="2자 이상 10자 이하"
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
-                        required
-                    />
-                </div>
+                    {fieldErrors.userEmail && <p className="error">{fieldErrors.userEmail}</p>}
+                    <div className="form-row">
+                        <label htmlFor="userEmail">이메일</label>
+                        <input
+                            id="userEmail"
+                            type="email"
+                            placeholder="test@test.com"
+                            value={userEmail}
+                            onChange={(e) => setUserEmail(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                {fieldErrors.userPhone && <p className="error">{fieldErrors.userPhone}</p>}
-                <div className="form-row">
-                    <label htmlFor="userPhone">전화번호</label>
-                    <input
-                        id="userPhone"
-                        type="text"
-                        placeholder="*010-0000-0000"
-                        value={userPhone}
-                        onChange={(e) => setUserPhone(e.target.value)}
-                        required
-                    />
-                </div>
+                    {fieldErrors.userName && <p className="error">{fieldErrors.userName}</p>}
+                    <div className="form-row">
+                        <label htmlFor="userName">이름</label>
+                        <input
+                            id="userName"
+                            type="text"
+                            placeholder="2자 이상 10자 이하"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                {fieldErrors.userPosition && <p className="error">{fieldErrors.userPosition}</p>}
-                <div className="form-row">
-                    <label htmlFor="userPosition">직책</label>
-                    <input
-                        id="userPosition"
-                        type="text"
-                        value={userPosition}
-                        onChange={(e) => setUserPosition(e.target.value)}
-                        required
-                    />
-                </div>
+                    {fieldErrors.userPhone && <p className="error">{fieldErrors.userPhone}</p>}
+                    <div className="form-row">
+                        <label htmlFor="userPhone">전화번호</label>
+                        <input
+                            id="userPhone"
+                            type="text"
+                            placeholder="*010-0000-0000"
+                            value={userPhone}
+                            onChange={(e) => setUserPhone(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                {fieldErrors.userDivision && <p className="error">{fieldErrors.userDivision}</p>}
-                <div className="form-row">
-                    <label htmlFor="userDivision">부서</label>
-                    <input
-                        id="userDivision"
-                        type="text"
-                        value={userDivision}
-                        onChange={(e) => setUserDivision(e.target.value)}
-                        required
-                    />
-                </div>
+                    {fieldErrors.userPosition && <p className="error">{fieldErrors.userPosition}</p>}
+                    <div className="form-row">
+                        <label htmlFor="userPosition">직책</label>
+                        <input
+                            id="userPosition"
+                            type="text"
+                            value={userPosition}
+                            onChange={(e) => setUserPosition(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                <button type="submit">수정 완료</button>
-                {error && <p className="error">{error}</p>}
-            </form>
-        </div>
+                    {fieldErrors.userDivision && <p className="error">{fieldErrors.userDivision}</p>}
+                    <div className="form-row">
+                        <label htmlFor="userDivision">부서</label>
+                        <input
+                            id="userDivision"
+                            type="text"
+                            value={userDivision}
+                            onChange={(e) => setUserDivision(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <button type="submit">수정 완료</button>
+                    {error && <p className="error">{error}</p>}
+                </form>
+            </div>
+        </>
     );
 }
 

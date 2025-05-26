@@ -43,8 +43,9 @@ function CompanyUserPage() {
     const navigate = useNavigate();
 
     const [users, setUsers] = useState<CompanyUser[]>([]);
-    const [searchCompany, setSearchCompany] = useState('');
-    const [searchName, setSearchName] = useState('');
+    const [searchCompanyName, setSearchCompanyName] = useState('');
+    const [searchCompanyUserName, setSearchCompanyUserName] = useState('');
+    const [searchMode, setSearchMode] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [sortState, setSortState] = useState<SortState[]>([]);
@@ -61,7 +62,6 @@ function CompanyUserPage() {
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [deals, setDeals] = useState<Deal[]>([]);
-    const ITEMS_PER_PAGE = 20;
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -72,8 +72,14 @@ function CompanyUserPage() {
         setSortState((prev) => {
             const existing = prev.find((s) => s.key === key);
             const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-            const newSort: SortState = { key, order: nextOrder };
-            return [newSort, ...prev.filter((s) => s.key !== key)];
+
+            // 기존 key가 있으면 순서 유지, 정렬 방향만 변경
+            if (existing) {
+                return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
+            }
+
+            // 새로 추가된 정렬 기준은 뒤에 붙이기
+            return [...prev, { key, order: nextOrder }];
         });
     };
 
@@ -84,23 +90,20 @@ function CompanyUserPage() {
     };
 
     const multiSort = (list: CompanyUser[]) => {
-        if (!Array.isArray(list)) return [];
+        if (!Array.isArray(list) || sortState.length === 0) return list;
 
         return [...list].sort((a, b) => {
             for (const { key, order } of sortState) {
                 const aVal = a[key];
                 const bVal = b[key];
 
-                // 숫자일 경우 직접 비교
                 if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    return order === 'asc' ? aVal - bVal : bVal - aVal;
+                    const diff = aVal - bVal;
+                    if (diff !== 0) return order === 'asc' ? diff : -diff;
+                } else {
+                    const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+                    if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
                 }
-
-                // 문자열 비교
-                const aStr = aVal.toString().toLowerCase();
-                const bStr = bVal.toString().toLowerCase();
-                const cmp = aStr.localeCompare(bStr);
-                if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
             }
             return 0;
         });
@@ -110,7 +113,7 @@ function CompanyUserPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`/companyUser?page=${page}&size=${ITEMS_PER_PAGE}`, {
+            const response = await fetch(`/companyUser?page=${page}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await response.json();
@@ -150,16 +153,30 @@ function CompanyUserPage() {
     };
 
     const searchCompanyUsers = async () => {
+        const noSearch = !searchCompanyName.trim() && !searchCompanyUserName.trim();
+        if (noSearch) {
+            setSearchMode(false);
+            await fetchCompanyUsers();
+            return;
+        }
+
         setLoading(true);
         try {
+            const params = new URLSearchParams();
+            if (searchCompanyName.trim()) params.append('companyName', searchCompanyName);
+            if (searchCompanyUserName.trim()) params.append('companyUserName', searchCompanyUserName);
+
             const token = localStorage.getItem('token');
-            const response = await fetch(`/companyUser/search?companyName=${encodeURIComponent(searchCompany)}&companyUserName=${encodeURIComponent(searchName)}&page=0`, {
+            const response = await fetch(`/companyUser/search?companyName=${encodeURIComponent(searchCompanyName)}&companyUserName=${encodeURIComponent(searchCompanyUserName)}&page=0`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+
+            if (response.ok) throw new Error('검색에 실패했습니다.');
             const data = await response.json();
             setUsers(data.content);
             setTotalPages(data.totalPages);
             setPage(0);
+            setError(null);
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -299,8 +316,17 @@ function CompanyUserPage() {
 
 
     useEffect(() => {
-        fetchCompanyUsers();
+        if (searchMode) {
+            searchCompanyUsers().then(() => {});
+        } else {
+            fetchCompanyUsers().then(() => {});
+        }
     }, [page]);
+
+    useEffect(() => {
+        const allEmpty = !searchCompanyName.trim() && !searchCompanyUserName.trim();
+        if (allEmpty) setSearchMode(false);
+    }, [searchCompanyName, searchCompanyUserName]);
 
     const sorted = multiSort(users);
 
@@ -312,20 +338,8 @@ function CompanyUserPage() {
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
-                    <input
-                        type="text"
-                        placeholder="고객사명 검색"
-                        value={searchCompany}
-                        onChange={(e) => setSearchCompany(e.target.value)}
-                        style={{ flex: 1 }}
-                    />
-                    <input
-                        type="text"
-                        placeholder="사원명 검색"
-                        value={searchName}
-                        onChange={(e) => setSearchName(e.target.value)}
-                        style={{ flex: 1 }}
-                    />
+                    <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} style={{ flex: 1 }} />
+                    <input type="text" placeholder="사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} style={{ flex: 1 }}/>
                     <button onClick={searchCompanyUsers} className="nav-button">검색</button>
                 </div>
 
