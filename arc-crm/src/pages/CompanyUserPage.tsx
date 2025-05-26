@@ -51,12 +51,6 @@ function CompanyUserPage() {
     const [sortState, setSortState] = useState<SortState[]>([]);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const [companyId, setCompanyId] = useState<string>(''); // 숫자 대신 문자열
-    const [newCompanyUserName, setNewCompanyUserName] = useState('');
-    const [newCompanyUserPhone, setNewCompanyUserPhone] = useState('');
-    const [newCompanyUserEmail, setNewCompanyUserEmail] = useState('');
-    const [newCompanyUserPosition, setNewCompanyUserPosition] = useState('');
-    const [newCompanyUserDivision, setNewCompanyUserDivision] = useState('');
     const [selectedUser, setSelectedUser] = useState<CompanyUser | null>(null);
     const [companyUserDetail, setCompanyUserDetail] = useState<CompanyUserDetail | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
@@ -67,6 +61,16 @@ function CompanyUserPage() {
         localStorage.removeItem('token');
         navigate('/login');
     };
+
+    const initialCompanyUserState = {
+        companyId: '',
+        companyUserName: '',
+        companyUserPhone: '',
+        companyUserEmail: '',
+        companyUserPosition: '',
+        companyUserDivision: '',
+    }
+    const [newCompanyUser, setNewCompanyUser] = useState(initialCompanyUserState);
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
@@ -210,17 +214,10 @@ function CompanyUserPage() {
                 body: JSON.stringify(companyUserData),
             });
 
-            if (!response.ok) {
-                const errorMessage = await response.text();
-                throw new Error(errorMessage || '고객사 사원 등록에 실패했습니다.');
-            }
+            if (!response.ok) throw new Error('고객사 사원 등록에 실패했습니다.');
 
             await fetchCompanyUsers();
-            setNewCompanyUserName('');
-            setNewCompanyUserPhone('');
-            setNewCompanyUserEmail('');
-            setNewCompanyUserPosition('');
-            setNewCompanyUserDivision('');
+            setNewCompanyUser(initialCompanyUserState);
             setError(null);
         } catch (err) {
             setError((err as Error).message);
@@ -338,9 +335,9 @@ function CompanyUserPage() {
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
-                    <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} style={{ flex: 1 }} />
-                    <input type="text" placeholder="사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} style={{ flex: 1 }}/>
-                    <button onClick={searchCompanyUsers} className="nav-button">검색</button>
+                    <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
+                    <input type="text" placeholder="사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} />
+                    <button onClick={searchCompanyUsers} >검색하기</button>
                 </div>
 
                 <div className="content-box">
@@ -349,40 +346,33 @@ function CompanyUserPage() {
                         inputMode="numeric"
                         pattern="[0-9]*"
                         placeholder="*고객사 ID"
-                        value={companyId}
-                        onChange={(e) => setCompanyId(e.target.value.replace(/\D/g, ''))}
-                        className="form-input"
-                        style={{ flex: 1 }}
+                        value={newCompanyUser.companyId}
+                        onChange={(e) =>
+                            setNewCompanyUser({ ...newCompanyUser, companyId: e.target.value.replace(/\D/g, '') })
+                        }
                     />
                     <input
                         type="text"
                         placeholder="*고객사 사원 이름"
-                        value={newCompanyUserName}
-                        onChange={(e) => setNewCompanyUserName(e.target.value)}
-                        style={{ flex: 1 }}
+                        value={newCompanyUser.companyUserName}
+                        onChange={(e) =>
+                            setNewCompanyUser({ ...newCompanyUser, companyUserName: e.target.value })
+                        }
                     />
-                    <input
-                        type="text"
+                    <input type="text"
                         placeholder="*고객사 사원 이메일"
-                        value={newCompanyUserEmail}
-                        onChange={(e) => setNewCompanyUserEmail(e.target.value)}
-                        style={{ flex: 1 }}
+                        value={newCompanyUser.companyUserEmail}
+                        onChange={(e) =>
+                            setNewCompanyUser({ ...newCompanyUser, companyUserEmail: e.target.value })
+                        }
                     />
                     <button
                         onClick={() =>
                             addCompanyUser({
-                                companyId: parseInt(companyId, 10) || 0,
-                                companyUserName: newCompanyUserName,
-                                companyUserPhone: newCompanyUserPhone,
-                                companyUserEmail: newCompanyUserEmail,
-                                companyUserPosition: newCompanyUserPosition,
-                                companyUserDivision: newCompanyUserDivision,
+                                ...newCompanyUser,
+                                companyId: parseInt(newCompanyUser.companyId, 10) || 0
                             })
-                        }
-                        className="nav-button"
-                    >
-                        고객사 사원 추가
-                    </button>
+                        } > 고객사 사원 추가 </button>
                 </div>
 
                 {/* Table */}

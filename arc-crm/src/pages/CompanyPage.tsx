@@ -40,15 +40,12 @@ function CompanyPage() {
     const navigate = useNavigate();
     const [companies, setCompanies] = useState<Company[]>([]);
     const [sortState, setSortState] = useState<SortState[]>([]);
-    const [searchComapnyName, setSearchCompanyName] = useState('');
+    const [searchCompanyName, setSearchCompanyName] = useState('');
     const [searchMode, setSearchMode] = useState(false); // 검색 중 여부
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const [newCompanyName, setNewCompanyName] = useState('');
-    const [newCompanyAddress, setNewCompanyAddress] = useState('');
-    const [newUserId, setNewUserId] = useState('');
     const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
     const [companyDetail, setCompanyDetail] = useState<CompanyDetail | null>(null);
     const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
@@ -59,6 +56,14 @@ function CompanyPage() {
         localStorage.removeItem('token');
         navigate('/login');
     };
+
+    const initialCompanyState = {
+        companyName: '',
+        companyAddress: '',
+        userId: ''
+    }
+
+    const [newCompany, setNewCompany] = useState(initialCompanyState);
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
@@ -155,7 +160,7 @@ function CompanyPage() {
     };
 
     const searchCompanies = async () => {
-        const noSearch = !searchComapnyName.trim();
+        const noSearch = !searchCompanyName.trim();
         if (noSearch) {
             setSearchMode(false);
             await fetchCompanies();
@@ -165,7 +170,7 @@ function CompanyPage() {
         setLoading(true);
         try {
             const params = new URLSearchParams();
-            if (searchComapnyName) params.append('companyName', searchComapnyName);
+            if (searchCompanyName) params.append('companyName', searchCompanyName);
             params.append('page', page.toString());
 
             const token = localStorage.getItem('token');
@@ -186,15 +191,13 @@ function CompanyPage() {
         }
     };
 
-    const addCompany = async (companyData: { companyName: string; companyAddress: string; userId: string }) => {
-        if (!companyData.companyName.trim()) {
-            setError('고객사명은 필수입니다.');
-            return;
-        }
-        if (!companyData.userId.trim()) {
-            setError('유저 ID는 필수입니다.');
-            return;
-        }
+    const addCompany = async (companyData: {
+        companyName: string;
+        companyAddress: string;
+        userId: string
+    }) => {
+        if (!companyData.companyName.trim()) { return setError('고객사명은 필수입니다.'); }
+        if (!companyData.userId.trim()) { return setError('유저 ID는 필수입니다.'); }
 
         setLoading(true);
         try {
@@ -211,9 +214,7 @@ function CompanyPage() {
             if (!response.ok) throw new Error('고객사 등록에 실패했습니다.');
 
             await fetchCompanies();
-            setNewCompanyName('');
-            setNewCompanyAddress('');
-            setNewUserId('');
+            setNewCompany(initialCompanyState);
             setError(null);
         } catch (err) {
             setError((err as Error).message);
@@ -295,9 +296,9 @@ function CompanyPage() {
     }, [page]);
 
     useEffect(() => {
-        const allEmpty = !searchComapnyName.trim();
+        const allEmpty = !searchCompanyName.trim();
         if (allEmpty) setSearchMode(false);
-    }, [searchComapnyName]);
+    }, [searchCompanyName]);
 
     const sorted = multiSort(companies);
 
@@ -308,15 +309,30 @@ function CompanyPage() {
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
-                    <input type="text" placeholder="고객사명 검색" value={searchComapnyName} onChange={(e) => setSearchCompanyName(e.target.value)} style={{ flex: 1 }} />
-                    <button onClick={() => { setPage(0); searchCompanies(); }}  className="nav-button"> 검색하기 </button>
+                    <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
+                    <button onClick={() => { setPage(0); searchCompanies(); }} > 검색하기 </button>
                 </div>
 
                 <div className="content-box">
-                    <input type="text" placeholder="*고객사명" value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} style={{ flex: 1 }} />
-                    <input type="text" placeholder="고객사 주소" value={newCompanyAddress} onChange={(e) => setNewCompanyAddress(e.target.value)} style={{ flex: 1 }} />
-                    <input type="text" placeholder="*유저 ID" value={newUserId} onChange={(e) => setNewUserId(e.target.value)} style={{ flex: 1 }} />
-                    <button onClick={() => addCompany({ companyName: newCompanyName, companyAddress: newCompanyAddress, userId: newUserId })} className="nav-button">고객사 추가</button>
+                    <input
+                        type="text"
+                        placeholder="*고객사명"
+                        value={newCompany.companyName}
+                        onChange={(e) => setNewCompany({ ...newCompany, companyName: e.target.value })}
+                    />
+                    <input
+                        type="text"
+                        placeholder="*고객사 주소"
+                        value={newCompany.companyAddress}
+                        onChange={(e) => setNewCompany({ ...newCompany, companyAddress: e.target.value })}
+                    />
+                    <input
+                        type="text"
+                        placeholder="*담당자 ID"
+                        value={newCompany.userId}
+                        onChange={(e) => setNewCompany({ ...newCompany, userId: e.target.value })}
+                    />
+                    <button onClick={() => addCompany(newCompany)} >고객사 추가</button>
                 </div>
 
                 {/* Table */}

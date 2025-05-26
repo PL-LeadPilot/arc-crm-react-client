@@ -32,7 +32,7 @@ body, .user-page, .company-page {
 }
 
 .nav-button.active {
-    background-color: #007bff;
+    background-color: darkgray;
     color: white;
-    border-color: #007bff;
+    border-color: darkgray;
 }
