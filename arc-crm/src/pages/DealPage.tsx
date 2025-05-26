@@ -19,6 +19,10 @@ interface Deal {
     dealAt: string;
 }
 
+interface DealDetails extends Deal {
+    updatedAt: string;
+}
+
 type SortKey = keyof Deal;
 
 type SortState = {
@@ -39,6 +43,10 @@ function DealPage() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+    const [dealDetail, setDealDetail] = useState<DealDetails | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [editMode, setEditMode] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -106,6 +114,32 @@ function DealPage() {
             setError((err as Error).message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchDealDetails = async (dealId: number) => {
+        setDetailLoading(true);
+        setError(null);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/deal/dealDetails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ dealId }),
+            });
+
+            if (!response.ok) throw new Error('상세 정보를 불러오지 못했습니다.');
+
+            const data = await response.json();
+            const fullDetail = { ...selectedDeal!, ...data };
+            setDealDetail(fullDetail);
+        } catch (err) {
+            console.error((err as Error).message);
+        } finally {
+            setDetailLoading(false);
         }
     };
 
@@ -207,8 +241,8 @@ function DealPage() {
 
     return (
         <div className="page">
+            {/* Nav */}
             <Navbar onLogout={handleLogout} />
-
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
@@ -297,7 +331,15 @@ function DealPage() {
                         {sorted.map((deal) => (
                             <tr key={deal.dealId}>
                                 <td>{deal.dealId}</td>
-                                <td>{deal.dealName}</td>
+                                <td
+                                    className="clicktable"
+                                    onClick={() => {
+                                        setSelectedDeal(deal);
+                                        fetchDealDetails(deal.dealId);
+                                    }}
+                                >
+                                    {deal.dealName}
+                                </td>
                                 <td>{deal.companyId}</td>
                                 <td>{deal.companyUserId}</td>
                                 <td>{deal.userName}</td>
@@ -334,6 +376,30 @@ function DealPage() {
                 })}
                 <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))} disabled={page === totalPages - 1} className="page-button">&gt;</button>
             </div>
+
+            {selectedDeal && dealDetail && (
+                <>
+                    <div className="slide-overlay" onClick={() => { setSelectedDeal(null); setEditMode(false); }}></div>
+                    <div className="slide-panel open">
+                        <button className="slide-close-button" onClick={() => { setSelectedDeal(null); setEditMode(false); }}>×</button>
+                        {detailLoading ? (
+                            <p>로딩 중...</p>
+                        ) : (
+                            <div className="container">
+                                <h3>영업 상세 정보</h3>
+                                <div className="form-row"><label>영업명</label><span>{dealDetail.dealName}</span></div>
+                                <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
+                                <div className="form-row"><label>고객사 사원 ID</label><span>{dealDetail.companyUserId}</span></div>
+                                <div className="form-row"><label>담당자</label><span>{dealDetail.userName}</span></div>
+                                <div className="form-row"><label>유입경로</label><span>{dealDetail.source}</span></div>
+                                <div className="form-row"><label>영업 상태</label><span>{dealDetail.status}</span></div>
+                                <div className="form-row"><label>영업 일자</label><span>{new Date(dealDetail.dealAt).toLocaleDateString()}</span></div>
+                                <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
