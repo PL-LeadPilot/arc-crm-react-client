@@ -258,6 +258,40 @@ function DealPage() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!dealDetail) return;
+
+        const confirmDelete = window.confirm('정말 영업 이력을 삭제하시겠습니까?');
+        if (!confirmDelete) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/deal', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    dealId: selectedDeal?.dealId,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '영업 이력 삭제에 실패했습니다.');
+            }
+
+            alert('영업 이력이 삭제되었습니다.');
+            setSelectedDeal(null);
+            setDealDetail(null);
+            setEditMode(false);
+            await fetchDeals();
+        } catch (err) {
+            alert(`삭제 실패: ${(err as Error).message}`);
+        }
+    };
+
     useEffect(() => {
         if (searchMode) {
             searchDeals().then(() => {});
@@ -465,6 +499,7 @@ function DealPage() {
                 <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))} disabled={page === totalPages - 1} className="page-button">&gt;</button>
             </div>
 
+            {/* Slide Panel */}
             {selectedDeal && dealDetail && (
                 <>
                     <div className="slide-overlay" onClick={() => { setSelectedDeal(null); setEditMode(false); }}></div>
@@ -511,6 +546,9 @@ function DealPage() {
                                 <div className="form-row"><label>영업 일자</label><span>{new Date(dealDetail.dealAt).toLocaleDateString()}</span></div>
                                 <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
                                 <button className="nav-button" onClick={() => setEditMode(true)}>영업 이력 수정하기</button>
+                                <div className="container-delete">
+                                    <span onClick={handleDelete} >영업 이력 삭제하기</span>
+                                </div>
                             </div>
                         )}
                     </div>
