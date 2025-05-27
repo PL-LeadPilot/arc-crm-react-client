@@ -24,6 +24,16 @@ interface DealDetails extends Deal {
     userId: string;
 }
 
+interface Contact {
+    contactId: number;
+    dealId: number;
+    userName: string;
+    contactType: string;
+    contactAt: string;
+    contactResult: string;
+    contactPercentage: number;
+}
+
 type SortKey = keyof Deal;
 
 type SortState = {
@@ -48,6 +58,7 @@ function DealPage() {
     const [dealDetail, setDealDetail] = useState<DealDetails | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const [contact, setContact] = useState<Contact[]>([]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -292,6 +303,27 @@ function DealPage() {
         }
     };
 
+    const fetchContactByDeal = async (dealId: number) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/contact/byDeal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ dealId }),
+            });
+
+            if (!response.ok) throw new Error('컨택 이력을 불러오지 못했습니다.');
+            const data = await response.json();
+            setContact(data);
+        } catch (error) {
+            console.error((error as Error).message);
+            setContact([]);
+        }
+    };
+
     useEffect(() => {
         if (searchMode) {
             searchDeals().then(() => {});
@@ -458,6 +490,7 @@ function DealPage() {
                                     onClick={() => {
                                         setSelectedDeal(deal);
                                         fetchDealDetails(deal.dealId);
+                                        fetchContactByDeal(deal.dealId);
                                     }}
                                 >
                                     {deal.dealName}
@@ -548,6 +581,38 @@ function DealPage() {
                                 <button className="nav-button" onClick={() => setEditMode(true)}>영업 이력 수정하기</button>
                                 <div className="container-delete">
                                     <span onClick={handleDelete} >영업 이력 삭제하기</span>
+                                </div>
+                                <div className="container-contain">
+                                    {contact.length === 0 ? (
+                                        <p>등록된 컨택 이력이 없습니다.</p>
+                                    ) : (
+                                        <div className="history">
+                                            <table className="table">
+                                                <thead>
+                                                <tr>
+                                                    <th>컨택 ID</th>
+                                                    <th>담당자</th>
+                                                    <th>컨택 유형</th>
+                                                    <th>컨택 결과</th>
+                                                    <th>진행률 (%)</th>
+                                                    <th>컨택 일자</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {contact.map((c) => (
+                                                    <tr key={c.contactId}>
+                                                        <td>{c.contactId}</td>
+                                                        <td>{c.userName}</td>
+                                                        <td>{c.contactType}</td>
+                                                        <td>{c.contactResult}</td>
+                                                        <td>{c.contactPercentage}</td>
+                                                        <td>{new Date(c.contactAt).toLocaleDateString()}</td>
+                                                    </tr>
+                                                ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
