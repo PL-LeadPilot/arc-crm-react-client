@@ -287,6 +287,62 @@ function DealPage() {
                     <button onClick={() => setShowAddForm(true)} >영업이력 추가</button>
                 </div>
 
+                {showAddForm && (
+                    <div className="overlay">
+                        <div className="container">
+                            <h3>영업 이력 추가</h3>
+                            <form>
+                                <div className="form-row">
+                                    <label>*영업명</label>
+                                    <input type="text" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required />
+                                </div>
+                                <div className="form-row">
+                                    <label>*고객사 ID</label>
+                                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required />
+                                </div>
+                                <div className="form-row">
+                                    <label>*고객사 사원 ID</label>
+                                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required />
+                                </div>
+                                <div className="form-row">
+                                    <label>*담당자 ID</label>
+                                    <input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value })} required />
+                                </div>
+                                <div className="form-row">
+                                    <label>*유입경로</label>
+                                    <select value={newDeal.sourceType} onChange={(e) => setNewDeal({ ...newDeal, sourceType: e.target.value })}>
+                                        <option value="INBOUND">INBOUND</option>
+                                        <option value="OUTBOUND">OUTBOUND</option>
+                                    </select>
+                                </div>
+                                <div className="form-row">
+                                    <label>*영업 상태</label>
+                                    <select value={newDeal.statusType} onChange={(e) => setNewDeal({ ...newDeal, statusType: e.target.value })}>
+                                        <option value="NEW">NEW</option>
+                                        <option value="CONTACTED">CONTACTED</option>
+                                        <option value="IN_PROGRESS">IN_PROGRESS</option>
+                                        <option value="COMPLETED">COMPLETED</option>
+                                    </select>
+                                </div>
+                                <div className="form-row">
+                                    <label>영업 일자</label>
+                                    <input type="date" value={newDeal.dealAt} onChange={(e) => setNewDeal({ ...newDeal, dealAt: e.target.value })} />
+                                </div>
+                                <div className="form-row">
+                                    <button type="submit" onClick={() =>
+                                        addDeal({
+                                            ...newDeal,
+                                            companyId: parseInt(newDeal.companyId, 10) || 0,
+                                            companyUserId: parseInt(newDeal.companyUserId, 10) || 0,
+                                        })
+                                    } >영업이력 추가</button>
+                                    <button type="button" onClick={() => { setShowAddForm(false); setNewDeal(initialDealState); }} className="nav-button">취소</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
                 {selectedDeal && dealDetail && (
                     <>
                         <div className="slide-overlay" onClick={() => { setSelectedDeal(null); setEditMode(false); }}></div>
