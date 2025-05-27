@@ -35,7 +35,7 @@ describe('SignUpPage', () => {
         expect(screen.getByLabelText('*전화번호')).toBeInTheDocument();
         expect(screen.getByLabelText('*직책')).toBeInTheDocument();
         expect(screen.getByLabelText('*부서')).toBeInTheDocument();
-        expect(screen.getByLabelText('*권한:')).toBeInTheDocument();
+        expect(screen.getByLabelText('*권한')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: '회원가입' })).toBeInTheDocument();
     });
 
@@ -73,7 +73,7 @@ describe('SignUpPage', () => {
         fireEvent.change(screen.getByLabelText('*부서'), {
             target: { value: '영업팀' },
         });
-        fireEvent.change(screen.getByLabelText('*권한:'), {
+        fireEvent.change(screen.getByLabelText('*권한'), {
             target: { value: 'ADMIN' },
         });
 
