@@ -311,7 +311,6 @@ function CompanyUserPage() {
         }
     };
 
-
     useEffect(() => {
         if (searchMode) {
             searchCompanyUsers().then(() => {});
@@ -330,8 +329,7 @@ function CompanyUserPage() {
     return (
         <div className="page">
             {/* Nav */}
-            <Navbar onLogout={handleLogout}
-            />
+            <Navbar onLogout={handleLogout} />
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
@@ -514,7 +512,7 @@ function CompanyUserPage() {
                                             <div className="container-delete">
                                                 <span onClick={handleDelete} >고객사 사원 정보 삭제하기</span>
                                             </div>
-                                            <div style={{ marginTop: '20px' }}>
+                                            <div className="container-contain">
                                                 {deals.length === 0 ? <p>영업 이력이 없습니다.</p> : (
                                                     <div className="history">
                                                         <table className="table">

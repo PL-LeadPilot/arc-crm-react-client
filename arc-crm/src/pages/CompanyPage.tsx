@@ -443,8 +443,7 @@ function CompanyPage() {
                                 <div className="container-delete">
                                     <span onClick={handleDelete} >고객사 정보 삭제하기</span>
                                 </div>
-                                <div style={{ marginTop: '20px' }}>
-                                    <h3>고객사 소속 사원 목록</h3>
+                                <div className="container-contain">
                                     {companyUsers.length === 0 ? (
                                         <p>등록된 사원이 없습니다.</p>
                                     ) : (

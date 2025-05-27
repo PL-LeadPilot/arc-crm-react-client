@@ -46,6 +46,10 @@
     cursor: pointer;
 }
 
+.container-contain {
+    margin-top: 1rem;
+}
+
 .overlay {
     position: fixed;
     top: 0;
