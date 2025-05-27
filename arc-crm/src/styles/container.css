@@ -28,7 +28,7 @@
 .container button {
     width: 100%;
     padding: 10px;
-    background-color: black;
+    background-color: #2d2d2d;
     color: #fff;
     border: 1px solid #dbdbdb;
     border-radius: 40px;
@@ -44,6 +44,23 @@
     color: gray;
     text-decoration: underline;
     cursor: pointer;
+}
+
+.container-contain {
+    margin-top: 1rem;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
 }
 
 .error {

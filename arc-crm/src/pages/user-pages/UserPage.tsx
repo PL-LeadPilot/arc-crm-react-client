@@ -35,31 +35,34 @@ function getUserRole(): string | null {
 function UserPage() {
     const navigate = useNavigate();
     const userRole = getUserRole();
-
     const [users, setUsers] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [sortState, setSortState] = useState<SortState[]>([]);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const ITEMS_PER_PAGE = 20;
-
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/');
-    };
 
     const handleGoToSignUp = () => navigate('/signup');
     const handleGoToUserPage = () => navigate('/user');
     const handleGoToCompanyPage = () => navigate('/company');
     const handleGoToMyPage = () => navigate('/user/me');
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/');
+    };
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
             const existing = prev.find((s) => s.key === key);
             const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-            const newSort: SortState = { key, order: nextOrder };
-            return [newSort, ...prev.filter((s) => s.key !== key)];
+
+            // 기존 key가 있으면 순서 유지, 정렬 방향만 변경
+            if (existing) {
+                return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
+            }
+
+            // 새로 추가된 정렬 기준은 뒤에 붙이기
+            return [...prev, { key, order: nextOrder }];
         });
     };
 
@@ -70,42 +73,51 @@ function UserPage() {
     };
 
     const multiSort = (list: User[]) => {
+        if (!Array.isArray(list)) return list;
+
         return [...list].sort((a, b) => {
             for (const { key, order } of sortState) {
-                const aVal = a[key].toLowerCase();
-                const bVal = b[key].toLowerCase();
-                const cmp = aVal.localeCompare(bVal);
-                if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
+                const aVal = a[key];
+                const bVal = b[key];
+
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    const diff = aVal - bVal;
+                    if (diff !== 0) return order === 'asc' ? diff : -diff;
+                } else {
+                    const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+                    if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
+                }
             }
             return 0;
         });
     };
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            setLoading(true);
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`/user?page=${page}&size=${ITEMS_PER_PAGE}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                if (!response.ok) throw new Error('유저 목록을 불러오지 못했습니다.');
-                const data = await response.json();
-                setUsers(data);
-            } catch (err) {
-                setError((err as Error).message);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchUsers = async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/user?page=${page}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) throw new Error('유저 정보를 불러오지 못했습니다.');
+            const data = await response.json();
+            setUsers(data.content);
+            setTotalPages(data.totalPages);
+            setError(null);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        fetchUsers();
+    useEffect(() => {
+        fetchUsers().then(() => {});
     }, [page]);
 
-
-    const sortedUsers = multiSort(users);
+    const sorted = multiSort(users);
 
     return (
         <div className="page">
@@ -139,8 +151,8 @@ function UserPage() {
                             </tr>
                             </thead>
                             <tbody>
-                            {sortedUsers.map((user, index) => (
-                                <tr key={index}>
+                            {sorted.map((user) => (
+                                <tr key={user.userName}>
                                     <td>{user.userName}</td>
                                     <td>{user.userEmail}</td>
                                     <td>{user.userPhone}</td>

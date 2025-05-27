@@ -57,7 +57,7 @@ describe('MyInfoPage', () => {
     test('수정 버튼 클릭 시 /user/me/edit으로 이동한다', async () => {
         render(<MyInfoPage />, { wrapper: MemoryRouter });
 
-        const button = await screen.findByRole('button', { name: '수정' });
+        const button = await screen.findByRole('button', { name: '수정하기' });
         fireEvent.click(button);
 
         expect(mockNavigate).toHaveBeenCalledWith('/user/me/edit');

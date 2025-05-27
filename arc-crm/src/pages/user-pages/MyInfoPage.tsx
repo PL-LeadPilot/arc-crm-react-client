@@ -105,12 +105,11 @@ function MyInfoPage() {
                 <div className="form-row"><label>직책</label><span>{userPosition}</span></div>
                 <div className="form-row"><label>부서</label><span>{userDivision}</span></div>
                 <div className="form-row"><label>수정일</label><span>{updatedAt}</span></div>
-                <button onClick={handleGoToEdit} className="nav-button">수정</button>
+                <button onClick={handleGoToEdit} className="nav-button">수정하기</button>
                 <div className="container-delete">
                     <span onClick={handleDelete}> 탈퇴하기 </span>
                 </div>
             </div>
-
         </>
     );
 }
