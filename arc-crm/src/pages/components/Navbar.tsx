@@ -26,8 +26,8 @@ function Navbar({ onLogout }: { onLogout: () => void }) {
                 <button onClick={() => handleNavClick('/user')} className={isActive('/user')}>유저 페이지</button>
                 <button onClick={() => handleNavClick('/company')} className={isActive('/company')}>고객사 페이지</button>
                 <button onClick={() => handleNavClick('/company-user')} className={isActive('/company-user')}>고객사 사원 페이지</button>
-                <button onClick={() => handleNavClick('/deals')} className={isActive('/deals')}>영업 이력 페이지</button>
-                <button onClick={() => handleNavClick('/contacts')} className={isActive('/contacts')}>컨택 이력 페이지</button>
+                <button onClick={() => handleNavClick('/deal')} className={isActive('/deal')}>영업 이력 페이지</button>
+                <button onClick={() => handleNavClick('/contact-history')} className={isActive('/contact-history')}>컨택 이력 페이지</button>
             </div>
         </nav>
     );
