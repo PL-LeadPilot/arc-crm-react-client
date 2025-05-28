@@ -2,13 +2,13 @@ import React, {JSX} from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/user-pages/LoginPage';
 import SignUpPage from './pages/user-pages/SignUpPage';
-import CompanyPage from './pages/CompanyPage';
-import CompanyUserPage from './pages/CompanyUserPage';
-import DealPage from './pages/DealPage'
 import UserPage from './pages/user-pages/UserPage';
 import MyInfoPage from './pages/user-pages/MyInfoPage';
 import EditMyInfoPage from './pages/user-pages/EditMyInfoPage';
-
+import CompanyPage from './pages/CompanyPage';
+import CompanyUserPage from './pages/CompanyUserPage';
+import DealPage from './pages/DealPage'
+import ContactHistoryPage from "./pages/ContactHistoryPage";
 
 // 유효성 체크
 const isTokenValid = () => {
@@ -47,12 +47,13 @@ function App() {
         <Routes>
             <Route path="/login" element={<PublicOnlyRoute element={<LoginPage />} />} />
             <Route path="/signup" element={<AdminRoute element={<SignUpPage />} />} />
-            <Route path="/company" element={<PrivateRoute element={<CompanyPage />} />} />
-            <Route path="/company-user" element={<PrivateRoute element={<CompanyUserPage />} />} />
-            <Route path="/deals" element={<PrivateRoute element={<DealPage />} />} />
             <Route path="/user" element={<PrivateRoute element={<UserPage />} />} />
             <Route path="/user/me" element={<PrivateRoute element={<MyInfoPage />} />} />
             <Route path="/user/me/edit" element={<PrivateRoute element={<EditMyInfoPage />} />} />
+            <Route path="/company" element={<PrivateRoute element={<CompanyPage />} />} />
+            <Route path="/company-user" element={<PrivateRoute element={<CompanyUserPage />} />} />
+            <Route path="/deal" element={<PrivateRoute element={<DealPage />} />} />
+            <Route path="/contact-history" element={<PrivateRoute element={<ContactHistoryPage />} />} />
             <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
     );
