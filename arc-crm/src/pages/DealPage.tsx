@@ -117,7 +117,7 @@ function DealPage() {
             const response = await fetch(`/deal?page=${page}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (!response.ok) throw new Error('영업 이력을 불러오지 못했습니다.');
+            if (!response.ok) throw new Error('영업 이력을 불러오는데 실패했습니다.');
             const data = await response.json();
             setDeals(data.content);
             setTotalPages(data.totalPages);
@@ -143,7 +143,7 @@ function DealPage() {
                 body: JSON.stringify({ dealId }),
             });
 
-            if (!response.ok) throw new Error('상세 정보를 불러오지 못했습니다.');
+            if (!response.ok) throw new Error('상세 정보를 불러오는데 실패했습니다.');
 
             const data = await response.json();
             setDealDetail(data);
@@ -315,7 +315,7 @@ function DealPage() {
                 body: JSON.stringify({ dealId }),
             });
 
-            if (!response.ok) throw new Error('컨택 이력을 불러오지 못했습니다.');
+            if (!response.ok) throw new Error('컨택 이력을 불러오는데 실패했습니다.');
             const data = await response.json();
             setContact(data);
         } catch (error) {
@@ -346,9 +346,9 @@ function DealPage() {
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
-                    <input type="text" placeholder="고객사명" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} style={{ flex: 1 }} />
-                    <input type="text" placeholder="고객사 사원명" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} style={{ flex: 1 }} />
-                    <input type="text" placeholder="영업명" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} style={{ flex: 1 }} />
+                    <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} style={{ flex: 1 }} />
+                    <input type="text" placeholder="고객사 사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} style={{ flex: 1 }} />
+                    <input type="text" placeholder="영업명 검색" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} style={{ flex: 1 }} />
                     <button onClick={() => { setPage(0); searchDeals(); }} >검색하기</button>
                     <button onClick={() => setShowAddForm(true)} >영업이력 추가</button>
                 </div>
@@ -467,7 +467,6 @@ function DealPage() {
                 {loading && <p>로딩 중...</p>}
                 {error && <p className="error">{error}</p>}
                 {!loading && (
-                    <>
                     <table className="table">
                         <thead>
                         <tr>
@@ -505,7 +504,6 @@ function DealPage() {
                         ))}
                         </tbody>
                     </table>
-                    </>
                 )}
             </div>
 

@@ -113,7 +113,7 @@ function CompanyPage() {
             const response = await fetch(`/company?page=${page}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (!response.ok) throw new Error('고객사 정보를 불러오지 못했습니다.');
+            if (!response.ok) throw new Error('고객사 정보를 불러오는데 실패했습니다.');
             const data = await response.json();
             setCompanies(data.content);
             setTotalPages(data.totalPages);
