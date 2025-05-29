@@ -181,10 +181,8 @@ function CompanyUserPage() {
             });
             if (!response.ok) throw new Error('상세 정보를 불러오는데 실패했습니다.');
             const data = await response.json();
-            const fullDetail = { ...selectedCompanyUser!, ...data };
-            setCompanyUserDetail(fullDetail);
-            await fetchDealsByCompany(fullDetail.companyId, fullDetail.companyUserId);
-
+            setCompanyUserDetail(data);
+            await fetchDealsByCompany(data.companyId, data.companyUserId);
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -341,7 +339,9 @@ function CompanyUserPage() {
             const filtered = data.filter((deal: Deal) => deal.companyUserId === companyUserId);
             setDeals(filtered);
         } catch (err) {
-            console.error('영업 목록 조회 실패:', err);
+            setError((err as Error).message);
+        } finally {
+            setLoading(false);
         }
     };
 

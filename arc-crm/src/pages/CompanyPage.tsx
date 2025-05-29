@@ -131,28 +131,18 @@ function CompanyPage() {
         setError(null);
         try {
             const token = localStorage.getItem('token');
-            const [detailRes, userRes] = await Promise.all([
-                fetch('/company/companyDetails', {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ companyId }),
-                }),
-                fetch('/companyUser/byCompany', {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ companyId }),
-                })
-            ]);
-            const detailData = await detailRes.json();
-            const userData = await userRes.json();
-            setCompanyDetail(detailData);
-            setCompanyUsers(userData);
+            const response = await fetch('/company/companyDetails', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({companyId})
+            });
+            if (!response.ok) throw new Error('상세 정보를 불러오는데 실패했습니다.');
+            const data = await response.json();
+            setCompanyDetail(data);
+            await fetchCompanyUsersByCompany(companyId);
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -291,6 +281,28 @@ function CompanyPage() {
             setLoading(false);
         }
     };
+
+    const fetchCompanyUsersByCompany = async (companyId: number) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/companyUser/byCompany', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ companyId }),
+            });
+            if (!response.ok) throw new Error('고객사 사원 조회 실패');
+            const data = await response.json();
+            setCompanyUsers(data);
+            setError(null);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
         if (searchMode) {
