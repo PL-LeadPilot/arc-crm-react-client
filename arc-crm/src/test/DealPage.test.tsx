@@ -73,7 +73,7 @@ test('opens add form when button clicked', async () => {
     const button = screen.getByText('영업이력 등록');
     fireEvent.click(button);
 
-    expect(await screen.findByText('영업 이력 등록')).toBeInTheDocument();
+    expect(await screen.findByText('영업이력 등록')).toBeInTheDocument();
     expect(await screen.findByText('*영업명')).toBeInTheDocument();
 });
 

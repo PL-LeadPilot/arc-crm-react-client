@@ -27,7 +27,7 @@ describe('CompanyPage', () => {
         expect(screen.getByText('로그아웃')).toBeInTheDocument();
         expect(screen.getByText('유저 페이지')).toBeInTheDocument();
         expect(screen.getByText('고객사 페이지')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('고객사명 검색')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('고객사명')).toBeInTheDocument();
         await waitFor(() => expect(fetch).toHaveBeenCalled());
     });
 
@@ -38,11 +38,11 @@ describe('CompanyPage', () => {
             </BrowserRouter>
         );
 
-        const input = screen.getByPlaceholderText('고객사명 검색') as HTMLInputElement;
+        const input = screen.getByPlaceholderText('고객사명') as HTMLInputElement;
         fireEvent.change(input, { target: { value: '테스트고객사' } });
         expect(input.value).toBe('테스트고객사');
 
-        const button = screen.getByText('검색하기');
+        const button = screen.getByText('검색');
         fireEvent.click(button);
 
         await waitFor(() => expect(fetch).toHaveBeenCalled());
@@ -71,7 +71,7 @@ describe('CompanyPage', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('고객사 정보를 불러오지 못했습니다.')).toBeInTheDocument();
+            expect(screen.getByText('고객사 정보를 불러오는데 실패했습니다.')).toBeInTheDocument();
         });
     });
 });
