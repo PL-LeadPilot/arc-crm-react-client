@@ -351,9 +351,13 @@ function CompanyPage() {
                             </thead>
                             <tbody>
                             {sorted.map((c) => (
-                                <tr key={c.companyId}>
+                                <tr key={c.companyId} className="open-slide-panel"
+                                    onClick={() => {
+                                        setSelectedCompany(c);
+                                        fetchCompanyDetails(c.companyId);
+                                    }}>
                                     <td>{c.companyId}</td>
-                                    <td className="clicktable" onClick={() => { setSelectedCompany(c); fetchCompanyDetails(c.companyId); }}>{c.companyName}</td>
+                                    <td>{c.companyName}</td>
                                     <td>{c.companyAddress}</td>
                                     <td>{c.userName}</td>
                                 </tr>

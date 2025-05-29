@@ -421,17 +421,13 @@ function CompanyUserPage() {
                             </thead>
                             <tbody>
                             {sorted.map((user) => (
-                                <tr key={user.companyUserId}>
+                                <tr key={user.companyUserId} className="open-slide-panel"
+                                    onClick={() => {
+                                        setSelectedUser(user);
+                                        fetchCompanyUserDetails(user.companyUserId);
+                                    }}>
                                     <td>{user.companyUserId}</td>
-                                    <td
-                                        className="clicktable"
-                                        onClick={() => {
-                                            setSelectedUser(user);
-                                            fetchCompanyUserDetails(user.companyUserId);
-                                        }}
-                                    >
-                                        {user.companyUserName}
-                                    </td>
+                                    <td>{user.companyUserName}</td>
                                     <td>{user.companyName}</td>
                                     <td>{user.companyUserPhone}</td>
                                     <td>{user.companyUserEmail}</td>

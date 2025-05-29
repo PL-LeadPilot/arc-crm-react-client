@@ -16,15 +16,19 @@
     cursor: pointer;
 }
 
-.clicktable {
-    cursor: pointer;
-    color: blue;
-}
-
 .table th button {
     background: none;
     border: none;
     font-weight: bold;
     cursor: pointer;
     padding: 0;
+}
+
+.open-slide-panel {
+    cursor: pointer;
+    pointer-events: bounding-box;
+}
+
+.open-slide-panel:hover {
+    background-color: #eee;
 }
