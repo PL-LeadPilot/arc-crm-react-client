@@ -59,6 +59,11 @@ function DealPage() {
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [contact, setContact] = useState<Contact[]>([]);
+    type ContactSortKey = keyof Contact;
+    const [contactSortState, setContactSortState] = useState<{ key: ContactSortKey, order: 'asc' | 'desc' }>({
+        key: 'contactAt',
+        order: 'desc',
+    });
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -109,6 +114,34 @@ function DealPage() {
             return 0;
         });
     };
+
+    // 컨택 이력 정렬
+    const toggleContactSort = (key: ContactSortKey) => {
+        setContactSortState(prev => ({
+            key,
+            order: prev.key === key && prev.order === 'desc' ? 'asc' : 'desc',
+        }));
+    };
+
+    const getContactSortIcon = (key: ContactSortKey) => {
+        if (contactSortState.key !== key) return '';
+        return contactSortState.order === 'asc' ? ' ▲' : ' ▼';
+    };
+
+    const sortedContacts = [...contact].sort((a, b) => {
+        const { key, order } = contactSortState;
+        const aVal = a[key];
+        const bVal = b[key];
+        let result: number;
+
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            result = aVal - bVal;
+        } else {
+            result = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+        }
+
+        return order === 'asc' ? result : -result;
+    });
 
     const fetchDeals = async () => {
         setLoading(true);
@@ -248,21 +281,15 @@ function DealPage() {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
+                    ...dealDetail,
                     dealId: selectedDeal?.dealId,
-                    dealName: dealDetail.dealName,
-                    companyId: dealDetail.companyId,
-                    companyUserId: dealDetail.companyUserId,
-                    userId: dealDetail.userId,
-                    sourceType: dealDetail.sourceType,
-                    statusType: dealDetail.statusType,
-                    dealAt: dealDetail.dealAt,
                 }),
             });
 
             if (!response.ok) throw new Error('영업 이력 수정 실패');
 
             await fetchDeals();
-            fetchDealDetails(dealDetail.dealId);
+            fetchDealDetails(selectedDeal!.dealId);
             setEditMode(false);
         } catch (err) {
             alert((err as Error).message);
@@ -358,22 +385,10 @@ function DealPage() {
                         <div className="container">
                             <h3>영업 이력 추가</h3>
                             <form>
-                                <div className="form-row">
-                                    <label>*영업명</label>
-                                    <input type="text" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required />
-                                </div>
-                                <div className="form-row">
-                                    <label>*고객사 ID</label>
-                                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required />
-                                </div>
-                                <div className="form-row">
-                                    <label>*고객사 사원 ID</label>
-                                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required />
-                                </div>
-                                <div className="form-row">
-                                    <label>*담당자 ID</label>
-                                    <input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value })} required />
-                                </div>
+                                <div className="form-row"><label>*영업명</label><input type="text" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required /></div>
+                                <div className="form-row"><label>*고객사 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required /></div>
+                                <div className="form-row"><label>*고객사 사원 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required /></div>
+                                <div className="form-row"><label>*담당자 ID</label><input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value })} required /></div>
                                 <div className="form-row">
                                     <label>*유입경로</label>
                                     <select value={newDeal.sourceType} onChange={(e) => setNewDeal({ ...newDeal, sourceType: e.target.value })}>
@@ -390,18 +405,15 @@ function DealPage() {
                                         <option value="COMPLETED">COMPLETED</option>
                                     </select>
                                 </div>
+                                <div className="form-row"><label>영업 일자</label><input type="date" value={newDeal.dealAt} onChange={(e) => setNewDeal({ ...newDeal, dealAt: e.target.value })} /></div>
                                 <div className="form-row">
-                                    <label>영업 일자</label>
-                                    <input type="date" value={newDeal.dealAt} onChange={(e) => setNewDeal({ ...newDeal, dealAt: e.target.value })} />
-                                </div>
-                                <div className="form-row">
-                                    <button type="submit" onClick={() =>
+                                    <button type="submit" className="nav-button" onClick={() =>
                                         addDeal({
                                             ...newDeal,
                                             companyId: parseInt(newDeal.companyId, 10) || 0,
                                             companyUserId: parseInt(newDeal.companyUserId, 10) || 0,
                                         })
-                                    } >영업이력 추가</button>
+                                    } >등록</button>
                                     <button type="button" onClick={() => { setShowAddForm(false); setNewDeal(initialDealState); }} className="nav-button">취소</button>
                                 </div>
                             </form>
@@ -412,7 +424,7 @@ function DealPage() {
                 {selectedDeal && dealDetail && (
                     <>
                         <div className="slide-overlay" onClick={() => { setSelectedDeal(null); setEditMode(false); }}></div>
-                        <div className={`slide-panel open`}>
+                        <div className={`slide-panel ${selectedDeal && dealDetail ? 'open' : ''}`}>
                             <button className="slide-close-button" onClick={() => { setSelectedDeal(null); setEditMode(false); }}>×</button>
                             {detailLoading ? (
                                 <p>로딩 중...</p>
@@ -437,7 +449,7 @@ function DealPage() {
                                                 <option value="NEW">NEW</option>
                                                 <option value="CONTACTED">CONTACTED</option>
                                                 <option value="IN_PROGRESS">IN_PROGRESS</option>
-                                                <option value="COMPLETED">COMPLETED</option>
+                                                <option value="CLOSED">CLOSED</option>
                                             </select>
                                         </div>
                                         <div className="form-row"><label>영업 일자</label><input type="date" value={dealDetail.dealAt} onChange={(e) => setDealDetail({ ...dealDetail, dealAt: e.target.value })} /></div>
@@ -544,7 +556,7 @@ function DealPage() {
                                     <h2>영업 이력 수정</h2>
                                     <div className="form-row"><label>영업명</label><input type="text" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
                                     <div className="form-row"><label>고객사 ID</label><input type="text" value={dealDetail.companyId} readOnly /></div>
-                                    <div className="form-row"><label>고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} /></div>
+                                    <div className="form-row"><label>고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} onChange={(e) => setDealDetail({ ...dealDetail, companyUserId: Number(e.target.value) })}/></div>
                                     <div className="form-row"><label>유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
                                     <div className="form-row"><label>유입 경로</label>
                                         <select value={dealDetail.sourceType} onChange={(e) => setDealDetail({ ...dealDetail, sourceType: e.target.value })}>
@@ -588,16 +600,16 @@ function DealPage() {
                                             <table className="table">
                                                 <thead>
                                                 <tr>
-                                                    <th>컨택 ID</th>
-                                                    <th>담당자</th>
-                                                    <th>컨택 유형</th>
-                                                    <th>컨택 결과</th>
-                                                    <th>진행률 (%)</th>
-                                                    <th>컨택 일자</th>
+                                                    <th onClick={() => toggleContactSort('contactId')}>컨택 ID{getContactSortIcon('contactId')}</th>
+                                                    <th onClick={() => toggleContactSort('userName')}>담당자{getContactSortIcon('userName')}</th>
+                                                    <th onClick={() => toggleContactSort('contactType')}>컨택 유형{getContactSortIcon('contactType')}</th>
+                                                    <th onClick={() => toggleContactSort('contactResult')}>컨택 결과{getContactSortIcon('contactResult')}</th>
+                                                    <th onClick={() => toggleContactSort('contactPercentage')}>진행률 (%) {getContactSortIcon('contactPercentage')}</th>
+                                                    <th onClick={() => toggleContactSort('contactAt')}>컨택 일자{getContactSortIcon('contactAt')}</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-                                                {contact.map((c) => (
+                                                {sortedContacts.map((c) => (
                                                     <tr key={c.contactId}>
                                                         <td>{c.contactId}</td>
                                                         <td>{c.userName}</td>

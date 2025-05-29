@@ -12,6 +12,10 @@
     font-size: 1rem;
 }
 
+.table th {
+    cursor: pointer;
+}
+
 .clicktable {
     cursor: pointer;
     color: blue;
