@@ -45,6 +45,9 @@ function ContactHistoryPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [contactHistoryDetail, setContactHistoryDetail] = useState<ContactDetails | null>(null);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -56,8 +59,8 @@ function ContactHistoryPage() {
         companyId: '',
         companyUserId: '',
         userId: '',
-        contactType: '',
-        contactResult: '',
+        contactType: 'EMAIL',
+        contactResult: 'REFUSE',
         contactAt: '',
         contactPercentage: 0,
         contactMemo: '',
@@ -114,8 +117,32 @@ function ContactHistoryPage() {
         }
     };
 
+    const fetchContactHIstoryDetails = async (contactId: number) => {
+        setDetailLoading(true);
+        setError(null);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/contact/contactDetails', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ contactId: contactId }),
+            });
+            if (!response.ok) throw new Error('상세 정보를 불러오는데 실패했습니다.');
+            const data = await response.json();
+            const fullDetail = { ...selectedContact!, ...data };
+            setContactHistoryDetail(fullDetail);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setDetailLoading(false);
+        }
+    }
+
     const searchContacts = async () => {
-        const noSearch = !searchCompanyName && !searchCompanyUserName && !searchUserName && !searchDealName;
+        const noSearch = !searchCompanyName.trim() && !searchCompanyUserName.trim() && !searchUserName.trim() && !searchDealName.trim();
         if (noSearch) {
             setSearchMode(false);
             await fetchContacts();
@@ -135,6 +162,7 @@ function ContactHistoryPage() {
             const response = await fetch(`/contact/search?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
             if (!response.ok) throw new Error('검색 실패');
             const data = await response.json();
             setContacts(data.content);
@@ -171,8 +199,8 @@ function ContactHistoryPage() {
             const response = await fetch('/contact', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     ...contactData,
@@ -181,11 +209,11 @@ function ContactHistoryPage() {
                 }),
             });
 
-            if (!response.ok) throw new Error('등록 실패');
+            if (!response.ok) throw new Error('컨택 이력 등록에 실패했습니다.');
 
-            alert('컨택 이력이 추가되었습니다.');
-            setShowAddForm(false);
+            alert('컨택 이력 등록에 성공했습니다.');
             await fetchContacts();
+            setShowAddForm(false);
             setNewContact(initialContactState);
             setError(null);
         } catch (err) {
@@ -213,15 +241,14 @@ function ContactHistoryPage() {
                     <input placeholder="고객사 사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} />
                     <input placeholder="담당자명 검색" value={searchUserName} onChange={(e) => setSearchUserName(e.target.value)} />
                     <input placeholder="영업명 검색" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} />
-                    <button onClick={() => { setPage(0); searchContacts(); }}>검색하기</button>
-                    <button onClick={() => setShowAddForm(true)}>컨택이력 추가</button>
+                    <button type="button" onClick={() => { setPage(0); searchContacts(); }}>검색하기</button>
+                    <button type="button" onClick={() => setShowAddForm(true)}>컨택 이력 등록</button>
                 </div>
 
                 {showAddForm && (
                     <div className="overlay">
                         <div className="container">
-                            <h3>컨택 이력 추가</h3>
-                            <form>
+                            <h3>컨택 이력 등록</h3>
                                 <div className="form-row"><label>*영업 ID</label><input type="number" value={newContact.dealId} onChange={(e) => setNewContact({ ...newContact, dealId: e.target.value })} /></div>
                                 <div className="form-row"><label>*고객사 ID</label><input type="number" value={newContact.companyId} onChange={(e) => setNewContact({ ...newContact, companyId: e.target.value })} /></div>
                                 <div className="form-row"><label>*고객사원 ID</label><input type="number" value={newContact.companyUserId} onChange={(e) => setNewContact({ ...newContact, companyUserId: e.target.value })} /></div>
@@ -258,18 +285,18 @@ function ContactHistoryPage() {
                                 <div className="form-row"><label>메모</label><input type="text" value={newContact.contactMemo} onChange={(e) => setNewContact({...newContact, contactMemo: e.target.value})} /></div>
                                 <div className="form-row">
                                     <button type="button" className="nav-button" onClick={() => {
-                                            addContact({
-                                                ...newContact,
-                                                dealId: parseInt(newContact.dealId, 10) || 0,
-                                                companyId: parseInt(newContact.companyId, 10) || 0,
-                                                companyUserId: parseInt(newContact.companyUserId, 10) || 0,
-                                            });
-                                        }}
+                                        addContact({
+                                            ...newContact,
+                                            dealId: parseInt(newContact.dealId, 10) || 0,
+                                            companyId: parseInt(newContact.companyId, 10) || 0,
+                                            companyUserId: parseInt(newContact.companyUserId, 10) || 0,
+                                        });
+                                    }}
                                     > 등록
                                     </button>
                                     <button type="button" onClick={() => setShowAddForm(false)} className="nav-button">취소</button>
                                 </div>
-                            </form>
+
                         </div>
                     </div>
                 )}
@@ -281,7 +308,7 @@ function ContactHistoryPage() {
                     <table className="table">
                         <thead>
                         <tr>
-                            <th><button onClick={() => toggleSort('contactId')}>ID{getSortIcon('contactId')}</button></th>
+                            <th><button onClick={() => toggleSort('contactId')}>컨택 ID{getSortIcon('contactId')}</button></th>
                             <th><button onClick={() => toggleSort('userName')}>담당자{getSortIcon('userName')}</button></th>
                             <th><button onClick={() => toggleSort('contactType')}>유형{getSortIcon('contactType')}</button></th>
                             <th><button onClick={() => toggleSort('contactResult')}>결과{getSortIcon('contactResult')}</button></th>
@@ -291,7 +318,12 @@ function ContactHistoryPage() {
                         </thead>
                         <tbody>
                         {sorted.map((c) => (
-                            <tr key={c.contactId}>
+                            <tr key={c.contactId} className="open-slide-panel"
+                                onClick={() => {
+                                    setSelectedContact(c);
+                                    fetchContactHIstoryDetails(c.contactId);
+                                }}
+                            >
                                 <td>{c.contactId}</td>
                                 <td>{c.userName}</td>
                                 <td>{c.contactType}</td>
@@ -306,27 +338,76 @@ function ContactHistoryPage() {
             </div>
 
             {/* Pagination */}
-            <div className="pagination">
-                <button onClick={() => setPage((prev) => Math.max(prev - 1, 0))} disabled={page === 0} className="page-button">&lt;</button>
+            <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                <button
+                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                    disabled={page === 0}
+                    className="page-button"
+                >
+                    &lt;
+                </button>
+
                 {Array.from({ length: totalPages }, (_, i) => {
                     if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
                         return (
-                            <button key={i} onClick={() => setPage(i)} className={`page-button ${page === i ? 'active' : ''}`}>
+                            <button
+                                key={`page-${i}`}
+                                onClick={() => setPage(i)}
+                                className={`page-button ${page === i ? 'active' : ''}`}
+                            >
                                 {i + 1}
                             </button>
                         );
                     }
+
                     if (
                         (i === 1 && page > 3) ||
                         (i === totalPages - 2 && page < totalPages - 4) ||
                         (Math.abs(i - page) === 2)
                     ) {
-                        return <span key={i} className="page-dots">...</span>;
+                        return <span key={`dots-${i}`} className="page-dots">...</span>;
                     }
-                    return null;
+
+                    return <React.Fragment key={`empty-${i}`} />;
                 })}
-                <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))} disabled={page === totalPages - 1} className="page-button">&gt;</button>
+
+                <button
+                    onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+                    disabled={page === totalPages - 1}
+                    className="page-button"
+                >
+                    &gt;
+                </button>
             </div>
+
+            { /* slide-panel */}
+            {selectedContact && contactHistoryDetail && (
+                <>
+                    <div className="slide-overlay" onClick={() => setSelectedContact(null)}></div>
+                    <div className={`slide-panel ${selectedContact && contactHistoryDetail ? 'open' : ''}`}>
+                        <button className="slide-close-button" onClick={() => setSelectedContact(null)}>×</button>
+                        {detailLoading ? (
+                            <p>로딩 중...</p>
+                        ) : (
+                            <div className="container">
+                                <h3>컨택 이력 상세 정보</h3>
+                                <div className="form-row"><label>컨택 ID</label><span>{selectedContact.contactId}</span></div>
+                                <div className="form-row"><label>영업 ID</label><span>{contactHistoryDetail.dealId}</span></div>
+                                <div className="form-row"><label>고객사 ID</label><span>{contactHistoryDetail.companyId}</span></div>
+                                <div className="form-row"><label>고객사원 ID</label><span>{contactHistoryDetail.companyUserId}</span></div>
+                                <div className="form-row"><label>담당자</label><span>{contactHistoryDetail.userName}</span></div>
+                                <div className="form-row"><label>컨택 유형</label><span>{contactHistoryDetail.contactType}</span></div>
+                                <div className="form-row"><label>컨택 결과</label><span>{contactHistoryDetail.contactResult}</span></div>
+                                <div className="form-row"><label>진행률 (%)</label><span>{contactHistoryDetail.contactPercentage}</span></div>
+                                <div className="form-row"><label>컨택 일자</label><span>{new Date(contactHistoryDetail.contactAt).toLocaleDateString()}</span></div>
+                                <div className="form-row"><label>메모</label><span>{contactHistoryDetail.contactMemo || '-'}</span></div>
+                                <div className="form-row"><label>수정일</label><span>{new Date(contactHistoryDetail.updatedAt).toLocaleString()}</span></div>
+                                {/* <button className="nav-button" onClick={() => setEditMode(true)}>수정하기</button> */}
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
