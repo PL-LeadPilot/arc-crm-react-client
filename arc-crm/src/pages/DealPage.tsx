@@ -170,8 +170,8 @@ function DealPage() {
             const response = await fetch('/deal/dealDetails', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ dealId }),
             });
@@ -244,8 +244,8 @@ function DealPage() {
             const response = await fetch('/deal', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     ...dealData,
@@ -256,7 +256,7 @@ function DealPage() {
 
             if (!response.ok) throw new Error('영업 이력 등록에 실패했습니다.');
 
-            alert('영업 이력이 추가되었습니다.');
+            alert('영업 이력이 등록되었습니다.');
             setShowAddForm(false);
             await fetchDeals();
             setNewDeal(initialDealState);
@@ -277,8 +277,8 @@ function DealPage() {
             const response = await fetch('/deal', {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     ...dealDetail,
@@ -307,8 +307,8 @@ function DealPage() {
             const response = await fetch('/deal', {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     dealId: selectedDeal?.dealId,
@@ -377,102 +377,46 @@ function DealPage() {
                     <input type="text" placeholder="고객사 사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} style={{ flex: 1 }} />
                     <input type="text" placeholder="영업명 검색" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} style={{ flex: 1 }} />
                     <button onClick={() => { setPage(0); searchDeals(); }} >검색하기</button>
-                    <button onClick={() => setShowAddForm(true)} >영업이력 추가</button>
+                    <button onClick={() => setShowAddForm(true)} >영업이력 등록</button>
                 </div>
 
                 {showAddForm && (
                     <div className="overlay">
                         <div className="container">
-                            <h3>영업 이력 추가</h3>
-                            <form>
-                                <div className="form-row"><label>*영업명</label><input type="text" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required /></div>
-                                <div className="form-row"><label>*고객사 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required /></div>
-                                <div className="form-row"><label>*고객사 사원 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required /></div>
-                                <div className="form-row"><label>*담당자 ID</label><input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value })} required /></div>
-                                <div className="form-row">
-                                    <label>*유입경로</label>
-                                    <select value={newDeal.sourceType} onChange={(e) => setNewDeal({ ...newDeal, sourceType: e.target.value })}>
-                                        <option value="INBOUND">INBOUND</option>
-                                        <option value="OUTBOUND">OUTBOUND</option>
-                                    </select>
-                                </div>
-                                <div className="form-row">
-                                    <label>*영업 상태</label>
-                                    <select value={newDeal.statusType} onChange={(e) => setNewDeal({ ...newDeal, statusType: e.target.value })}>
-                                        <option value="NEW">NEW</option>
-                                        <option value="CONTACTED">CONTACTED</option>
-                                        <option value="IN_PROGRESS">IN_PROGRESS</option>
-                                        <option value="COMPLETED">COMPLETED</option>
-                                    </select>
-                                </div>
-                                <div className="form-row"><label>영업 일자</label><input type="date" value={newDeal.dealAt} onChange={(e) => setNewDeal({ ...newDeal, dealAt: e.target.value })} /></div>
-                                <div className="form-row">
-                                    <button type="submit" className="nav-button" onClick={() =>
-                                        addDeal({
-                                            ...newDeal,
-                                            companyId: parseInt(newDeal.companyId, 10) || 0,
-                                            companyUserId: parseInt(newDeal.companyUserId, 10) || 0,
-                                        })
-                                    } >등록</button>
-                                    <button type="button" onClick={() => { setShowAddForm(false); setNewDeal(initialDealState); }} className="nav-button">취소</button>
-                                </div>
-                            </form>
+                            <h3>영업 이력 등록</h3>
+                            <div className="form-row"><label>*영업명</label><input type="text" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required /></div>
+                            <div className="form-row"><label>*고객사 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required /></div>
+                            <div className="form-row"><label>*고객사 사원 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required /></div>
+                            <div className="form-row"><label>*담당자 ID</label><input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value })} required /></div>
+                            <div className="form-row">
+                                <label>*유입경로</label>
+                                <select value={newDeal.sourceType} onChange={(e) => setNewDeal({ ...newDeal, sourceType: e.target.value })}>
+                                    <option value="INBOUND">INBOUND</option>
+                                    <option value="OUTBOUND">OUTBOUND</option>
+                                </select>
+                            </div>
+                            <div className="form-row">
+                                <label>*영업 상태</label>
+                                <select value={newDeal.statusType} onChange={(e) => setNewDeal({ ...newDeal, statusType: e.target.value })}>
+                                    <option value="NEW">NEW</option>
+                                    <option value="CONTACTED">CONTACTED</option>
+                                    <option value="IN_PROGRESS">IN_PROGRESS</option>
+                                    <option value="COMPLETED">COMPLETED</option>
+                                </select>
+                            </div>
+                            <div className="form-row"><label>영업 일자</label><input type="date" value={newDeal.dealAt} onChange={(e) => setNewDeal({ ...newDeal, dealAt: e.target.value })} /></div>
+                            <div className="form-row">
+                                <button type="button" className="nav-button" onClick={() =>
+                                    addDeal({
+                                        ...newDeal,
+                                        companyId: parseInt(newDeal.companyId, 10) || 0,
+                                        companyUserId: parseInt(newDeal.companyUserId, 10) || 0,
+                                    })
+                                } >등록</button>
+                                <button type="button" onClick={() => { setShowAddForm(false); setNewDeal(initialDealState); }} className="nav-button">취소</button>
+                            </div>
                         </div>
                     </div>
-                )}
-
-                {selectedDeal && dealDetail && (
-                    <>
-                        <div className="slide-overlay" onClick={() => { setSelectedDeal(null); setEditMode(false); }}></div>
-                        <div className={`slide-panel ${selectedDeal && dealDetail ? 'open' : ''}`}>
-                            <button className="slide-close-button" onClick={() => { setSelectedDeal(null); setEditMode(false); }}>×</button>
-                            {detailLoading ? (
-                                <p>로딩 중...</p>
-                            ) : editMode ? (
-                                <div className="container">
-                                    <form onSubmit={handleDealUpdate}>
-                                        <h2>영업 이력 수정</h2>
-                                        <div className="form-row"><label>영업명</label><input type="text" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
-                                        <div className="form-row"><label>고객사 ID</label><input type="text" value={dealDetail.companyId} readOnly /></div>
-                                        <div className="form-row"><label>고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} readOnly /></div>
-                                        <div className="form-row"><label>유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
-                                        <div className="form-row">
-                                            <label>유입경로</label>
-                                            <select value={dealDetail.sourceType} onChange={(e) => setDealDetail({ ...dealDetail, sourceType: e.target.value })}>
-                                                <option value="INBOUND">INBOUND</option>
-                                                <option value="OUTBOUND">OUTBOUND</option>
-                                            </select>
-                                        </div>
-                                        <div className="form-row">
-                                            <label>영업 상태</label>
-                                            <select value={dealDetail.statusType} onChange={(e) => setDealDetail({ ...dealDetail, statusType: e.target.value })}>
-                                                <option value="NEW">NEW</option>
-                                                <option value="CONTACTED">CONTACTED</option>
-                                                <option value="IN_PROGRESS">IN_PROGRESS</option>
-                                                <option value="CLOSED">CLOSED</option>
-                                            </select>
-                                        </div>
-                                        <div className="form-row"><label>영업 일자</label><input type="date" value={dealDetail.dealAt} onChange={(e) => setDealDetail({ ...dealDetail, dealAt: e.target.value })} /></div>
-                                        <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
-                                        <button type="submit">저장</button>
-                                    </form>
-                                </div>
-                            ) : (
-                                <div className="container">
-                                    <h3>영업 상세 정보</h3>
-                                    <div className="form-row"><label>영업명</label><span>{dealDetail.dealName}</span></div>
-                                    <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
-                                    <div className="form-row"><label>고객사 사원 ID</label><span>{dealDetail.companyUserId}</span></div>
-                                    <div className="form-row"><label>담당자</label><span>{dealDetail.userName}</span></div>
-                                    <div className="form-row"><label>유입경로</label><span>{dealDetail.sourceType}</span></div>
-                                    <div className="form-row"><label>영업 상태</label><span>{dealDetail.statusType}</span></div>
-                                    <div className="form-row"><label>영업 일자</label><span>{new Date(dealDetail.dealAt).toLocaleDateString()}</span></div>
-                                    <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
-                                    <button className="nav-button" onClick={() => setEditMode(true)}>영업 이력 수정하기</button>
-                                </div>
-                            )}
-                        </div>
-                    </>
                 )}
 
                 {/* Table */}
@@ -516,26 +460,46 @@ function DealPage() {
             </div>
 
             {/* Pagination */}
-            <div className="pagination">
-                <button onClick={() => setPage((prev) => Math.max(prev - 1, 0))} disabled={page === 0} className="page-button">&lt;</button>
+            <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                <button
+                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                    disabled={page === 0}
+                    className="page-button"
+                >
+                    &lt;
+                </button>
+
                 {Array.from({ length: totalPages }, (_, i) => {
                     if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
                         return (
-                            <button key={i} onClick={() => setPage(i)} className={`page-button ${page === i ? 'active' : ''}`}>
+                            <button
+                                key={`page-${i}`}
+                                onClick={() => setPage(i)}
+                                className={`page-button ${page === i ? 'active' : ''}`}
+                            >
                                 {i + 1}
                             </button>
                         );
                     }
+
                     if (
                         (i === 1 && page > 3) ||
                         (i === totalPages - 2 && page < totalPages - 4) ||
                         (Math.abs(i - page) === 2)
                     ) {
-                        return <span key={i} className="page-dots">...</span>;
+                        return <span key={`dots-${i}`} className="page-dots">...</span>;
                     }
-                    return null;
+
+                    return <React.Fragment key={`empty-${i}`} />;
                 })}
-                <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))} disabled={page === totalPages - 1} className="page-button">&gt;</button>
+
+                <button
+                    onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+                    disabled={page === totalPages - 1}
+                    className="page-button"
+                >
+                    &gt;
+                </button>
             </div>
 
             {/* Slide Panel */}
@@ -550,17 +514,18 @@ function DealPage() {
                             <div className="container">
                                 <form onSubmit={handleDealUpdate}>
                                     <h2>영업 이력 수정</h2>
-                                    <div className="form-row"><label>영업명</label><input type="text" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
-                                    <div className="form-row"><label>고객사 ID</label><input type="text" value={dealDetail.companyId} readOnly /></div>
-                                    <div className="form-row"><label>고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} onChange={(e) => setDealDetail({ ...dealDetail, companyUserId: Number(e.target.value) })}/></div>
-                                    <div className="form-row"><label>유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
-                                    <div className="form-row"><label>유입 경로</label>
+                                    <div className="form-row"><label>영업 ID</label><span>{selectedDeal!.dealId}</span></div>
+                                    <div className="form-row"><label>*영업명</label><input type="text" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
+                                    <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
+                                    <div className="form-row"><label>*고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} onChange={(e) => setDealDetail({ ...dealDetail, companyUserId: Number(e.target.value) })}/></div>
+                                    <div className="form-row"><label>*유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
+                                    <div className="form-row"><label>*유입 경로</label>
                                         <select value={dealDetail.sourceType} onChange={(e) => setDealDetail({ ...dealDetail, sourceType: e.target.value })}>
                                             <option value="INBOUND">INBOUND</option>
                                             <option value="OUTBOUND">OUTBOUND</option>
                                         </select>
                                     </div>
-                                    <div className="form-row"><label>영업 상태</label>
+                                    <div className="form-row"><label>*영업 상태</label>
                                         <select value={dealDetail.statusType} onChange={(e) => setDealDetail({ ...dealDetail, statusType: e.target.value })}>
                                             <option value="NEW">NEW</option>
                                             <option value="CONTACTED">CONTACTED</option>
@@ -568,7 +533,7 @@ function DealPage() {
                                             <option value="COMPLETED">COMPLETED</option>
                                         </select>
                                     </div>
-                                    <div className="form-row"><label>영업 일자</label><input type="date" value={dealDetail.dealAt} onChange={(e) => setDealDetail({ ...dealDetail, dealAt: e.target.value })} /></div>
+                                    <div className="form-row"><label>*영업 일자</label><input type="date" value={dealDetail.dealAt} onChange={(e) => setDealDetail({ ...dealDetail, dealAt: e.target.value })} /></div>
                                     <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
                                     <button type="submit">저장</button>
                                 </form>
@@ -576,6 +541,7 @@ function DealPage() {
                         ) : (
                             <div className="container">
                                 <h3>영업 상세 정보</h3>
+                                <div className="form-row"><label>영업 ID</label><span>{selectedDeal!.dealId}</span></div>
                                 <div className="form-row"><label>영업명</label><span>{dealDetail.dealName}</span></div>
                                 <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
                                 <div className="form-row"><label>고객사 사원 ID</label><span>{dealDetail.companyUserId}</span></div>

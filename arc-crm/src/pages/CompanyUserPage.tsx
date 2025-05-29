@@ -51,11 +51,13 @@ function CompanyUserPage() {
     const [sortState, setSortState] = useState<SortState[]>([]);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const [selectedUser, setSelectedUser] = useState<CompanyUser | null>(null);
+    const [selectedCompanyUser, setSelectedCompanyUser] = useState<CompanyUser | null>(null);
     const [companyUserDetail, setCompanyUserDetail] = useState<CompanyUserDetail | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [deals, setDeals] = useState<Deal[]>([]);
+    const [showAddForm, setShowAddForm] = useState(false);
+
     type DealSortKey = keyof Deal;
     const [dealSortState, setDealSortState] = useState<{ key: DealSortKey; order: 'asc' | 'desc' }>({
         key: 'dealAt',
@@ -87,7 +89,7 @@ function CompanyUserPage() {
                 return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
             }
 
-            // 새로 추가된 정렬 기준은 뒤에 붙이기
+            // 새로 등록된 정렬 기준은 뒤에 붙이기
             return [...prev, { key, order: nextOrder }];
         });
     };
@@ -172,14 +174,14 @@ function CompanyUserPage() {
             const response = await fetch('/companyUser/companyUserDetails', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ companyUserId }),
             });
             if (!response.ok) throw new Error('상세 정보를 불러오는데 실패했습니다.');
             const data = await response.json();
-            const fullDetail = { ...selectedUser!, ...data };
+            const fullDetail = { ...selectedCompanyUser!, ...data };
             setCompanyUserDetail(fullDetail);
             await fetchDealsByCompany(fullDetail.companyId, fullDetail.companyUserId);
 
@@ -203,17 +205,18 @@ function CompanyUserPage() {
             const params = new URLSearchParams();
             if (searchCompanyName.trim()) params.append('companyName', searchCompanyName);
             if (searchCompanyUserName.trim()) params.append('companyUserName', searchCompanyUserName);
+            params.append('page', page.toString());
 
             const token = localStorage.getItem('token');
-            const response = await fetch(`/companyUser/search?companyName=${encodeURIComponent(searchCompanyName)}&companyUserName=${encodeURIComponent(searchCompanyUserName)}&page=0`, {
+            const response = await fetch(`/companyUser/search?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            if (response.ok) throw new Error('검색에 실패했습니다.');
+            if (!response.ok) throw new Error('검색에 실패했습니다.');
             const data = await response.json();
             setUsers(data.content);
             setTotalPages(data.totalPages);
-            setPage(0);
+            setSearchMode(true);
             setError(null);
         } catch (err) {
             setError((err as Error).message);
@@ -242,15 +245,17 @@ function CompanyUserPage() {
             const response = await fetch('/companyUser', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(companyUserData),
             });
 
             if (!response.ok) throw new Error('고객사 사원 등록에 실패했습니다.');
 
+            alert('고객사 사원 등록에 성공했습니다.');
             await fetchCompanyUsers();
+            setShowAddForm(false);
             setNewCompanyUser(initialCompanyUserState);
             setError(null);
         } catch (err) {
@@ -269,19 +274,19 @@ function CompanyUserPage() {
             const response = await fetch('/companyUser', {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     ...companyUserDetail,
-                    companyUserId: selectedUser?.companyUserId,
+                    companyUserId: selectedCompanyUser?.companyUserId,
                 }),
             });
 
             if (!response.ok) throw new Error('고객사 사원 정보 수정 실패');
 
             await fetchCompanyUsers();
-            fetchCompanyUserDetails(selectedUser!.companyUserId);
+            fetchCompanyUserDetails(selectedCompanyUser!.companyUserId);
             setEditMode(false);
         } catch (err) {
             alert((err as Error).message);
@@ -297,11 +302,11 @@ function CompanyUserPage() {
             const response = await fetch('/companyUser', {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    companyUserId: selectedUser?.companyUserId,
+                    companyUserId: selectedCompanyUser?.companyUserId,
                 }),
             });
 
@@ -311,7 +316,7 @@ function CompanyUserPage() {
             }
 
             alert('고객사 사원이 삭제되었습니다.');
-            setSelectedUser(null);
+            setSelectedCompanyUser(null);
             setCompanyUserDetail(null);
             setEditMode(false);
             await fetchCompanyUsers();
@@ -326,8 +331,8 @@ function CompanyUserPage() {
             const response = await fetch(`/deal/byCompany`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ companyId }),
             });
@@ -364,43 +369,106 @@ function CompanyUserPage() {
                 <div className="content-box">
                     <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
                     <input type="text" placeholder="사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} />
-                    <button onClick={searchCompanyUsers} >검색하기</button>
+                    <button type="button" onClick={() => { setPage(0); searchCompanyUsers(); }} >검색하기</button>
+                    <button type="button" onClick={() => setShowAddForm(true)}>고객사 사원 등록</button>
                 </div>
 
-                <div className="content-box">
-                    <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        placeholder="*고객사 ID"
-                        value={newCompanyUser.companyId}
-                        onChange={(e) =>
-                            setNewCompanyUser({ ...newCompanyUser, companyId: e.target.value.replace(/\D/g, '') })
-                        }
-                    />
-                    <input
-                        type="text"
-                        placeholder="*고객사 사원 이름"
-                        value={newCompanyUser.companyUserName}
-                        onChange={(e) =>
-                            setNewCompanyUser({ ...newCompanyUser, companyUserName: e.target.value })
-                        }
-                    />
-                    <input type="text"
-                        placeholder="*고객사 사원 이메일"
-                        value={newCompanyUser.companyUserEmail}
-                        onChange={(e) =>
-                            setNewCompanyUser({ ...newCompanyUser, companyUserEmail: e.target.value })
-                        }
-                    />
-                    <button
-                        onClick={() =>
-                            addCompanyUser({
-                                ...newCompanyUser,
-                                companyId: parseInt(newCompanyUser.companyId, 10) || 0
-                            })
-                        } > 고객사 사원 추가 </button>
-                </div>
+                {showAddForm && (
+                    <div className="overlay">
+                        <div className="container">
+                            <h3>고객사 사원 등록</h3>
+                            <div className="form-row">
+                                <label>*고객사 ID</label>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    placeholder="*고객사 ID"
+                                    value={newCompanyUser.companyId}
+                                    onChange={(e) =>
+                                        setNewCompanyUser({ ...newCompanyUser, companyId: e.target.value.replace(/\D/g, '') })
+                                    }
+                                />
+                            </div>
+                            <div className="form-row">
+                                <label>*고객사 사원 이름</label>
+                                <input
+                                    type="text"
+                                    placeholder="*고객사 사원 이름"
+                                    value={newCompanyUser.companyUserName}
+                                    onChange={(e) =>
+                                        setNewCompanyUser({ ...newCompanyUser, companyUserName: e.target.value })
+                                    }
+                                />
+                            </div>
+                            <div className="form-row">
+                                <label>전화번호</label>
+                                <input
+                                    type="text"
+                                    placeholder="전화번호"
+                                    value={newCompanyUser.companyUserPhone}
+                                    onChange={(e) =>
+                                        setNewCompanyUser({ ...newCompanyUser, companyUserPhone: e.target.value })
+                                    }
+                                />
+                            </div>
+                            <div className="form-row">
+                                <label>*이메일</label>
+                                <input
+                                    type="email"
+                                    placeholder="이메일"
+                                    value={newCompanyUser.companyUserEmail}
+                                    onChange={(e) =>
+                                        setNewCompanyUser({ ...newCompanyUser, companyUserEmail: e.target.value })
+                                    }
+                                />
+                            </div>
+                            <div className="form-row">
+                                <label>직급</label>
+                                <input
+                                    type="text"
+                                    placeholder="직급"
+                                    value={newCompanyUser.companyUserPosition}
+                                    onChange={(e) =>
+                                        setNewCompanyUser({ ...newCompanyUser, companyUserPosition: e.target.value })
+                                    }
+                                />
+                            </div>
+                            <div className="form-row">
+                                <label>부서</label>
+                                <input
+                                    type="text"
+                                    placeholder="부서"
+                                    value={newCompanyUser.companyUserDivision}
+                                    onChange={(e) =>
+                                        setNewCompanyUser({ ...newCompanyUser, companyUserDivision: e.target.value })
+                                    }
+                                />
+                            </div>
+                            <div className="form-row">
+                                <button
+                                    type="button"
+                                    className="nav-button"
+                                    onClick={() =>
+                                        addCompanyUser({
+                                            ...newCompanyUser,
+                                            companyId: parseInt(newCompanyUser.companyId, 10) || 0
+                                        })
+                                    }
+                                >등록
+                                </button>
+                                <button type="button" className="nav-button"
+                                    onClick={() => {
+                                        setShowAddForm(false);
+                                        setNewCompanyUser(initialCompanyUserState);
+                                    }}
+                                >
+                                    취소
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Table */}
                 {loading && <p>로딩 중...</p>}
@@ -423,7 +491,7 @@ function CompanyUserPage() {
                             {sorted.map((user) => (
                                 <tr key={user.companyUserId} className="open-slide-panel"
                                     onClick={() => {
-                                        setSelectedUser(user);
+                                        setSelectedCompanyUser(user);
                                         fetchCompanyUserDetails(user.companyUserId);
                                     }}>
                                     <td>{user.companyUserId}</td>
@@ -448,11 +516,11 @@ function CompanyUserPage() {
                                 &lt;
                             </button>
 
-                            {Array.from({ length: totalPages }, (_, i) => i).map((i) => {
+                            {Array.from({ length: totalPages }, (_, i) => {
                                 if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
                                     return (
                                         <button
-                                            key={i}
+                                            key={`page-${i}`}
                                             onClick={() => setPage(i)}
                                             className={`page-button ${page === i ? 'active' : ''}`}
                                         >
@@ -460,14 +528,16 @@ function CompanyUserPage() {
                                         </button>
                                     );
                                 }
+
                                 if (
                                     (i === 1 && page > 3) ||
                                     (i === totalPages - 2 && page < totalPages - 4) ||
                                     (Math.abs(i - page) === 2)
                                 ) {
-                                    return <span key={i} className="page-dots">...</span>;
+                                    return <span key={`dots-${i}`} className="page-dots">...</span>;
                                 }
-                                return null;
+
+                                return <React.Fragment key={`empty-${i}`} />;
                             })}
 
                             <button
@@ -479,52 +549,32 @@ function CompanyUserPage() {
                             </button>
                         </div>
 
-                        {selectedUser && companyUserDetail && (
+                        {selectedCompanyUser && companyUserDetail && (
                             <>
-                                <div className="slide-overlay" onClick={() => { setSelectedUser(null); setEditMode(false); }}></div>
-                                <div className={`slide-panel ${selectedUser && companyUserDetail ? 'open' : ''}`}>
-                                <button className="slide-close-button" onClick={() => { setSelectedUser(null); setEditMode(false); }}>×</button>
+                                <div className="slide-overlay" onClick={() => { setSelectedCompanyUser(null); setEditMode(false); }}></div>
+                                <div className={`slide-panel ${selectedCompanyUser && companyUserDetail ? 'open' : ''}`}>
+                                <button className="slide-close-button" onClick={() => { setSelectedCompanyUser(null); setEditMode(false); }}>×</button>
                                     {detailLoading ? (
                                         <p>로딩 중...</p>
                                     ) : editMode ? (
                                         <div className="container">
                                             <form onSubmit={handleCompanyUserUpdate}>
                                                 <h2>고객사 사원 정보 수정</h2>
-                                                <h5>고객사 ID 및 고객사명은 수정 불가</h5>
-                                                <div className="form-row">
-                                                    <label>고객사 ID</label>
-                                                    <input type="text" value={companyUserDetail.companyId} readOnly />
-                                                </div>
-                                                <div className="form-row">
-                                                    <label>고객사명</label>
-                                                    <input type="text" value={companyUserDetail.companyName} readOnly />
-                                                </div>
-                                                <div className="form-row">
-                                                    <label>*이름</label>
-                                                    <input type="text" value={companyUserDetail.companyUserName} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserName: e.target.value })} />
-                                                </div>
-                                                <div className="form-row">
-                                                    <label>전화번호</label>
-                                                    <input type="text" value={companyUserDetail.companyUserPhone} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserPhone: e.target.value })} />
-                                                </div>
-                                                <div className="form-row">
-                                                    <label>*이메일</label>
-                                                    <input type="text" value={companyUserDetail.companyUserEmail} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserEmail: e.target.value })} />
-                                                </div>
-                                                <div className="form-row">
-                                                    <label>직급</label>
-                                                    <input type="text" value={companyUserDetail.companyUserPosition} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserPosition: e.target.value })} />
-                                                </div>
-                                                <div className="form-row">
-                                                    <label>부서</label>
-                                                    <input type="text" value={companyUserDetail.companyUserDivision} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserDivision: e.target.value })} />
-                                                </div>
+                                                <div className="form-row"><label>고객사원 ID</label><span>{selectedCompanyUser.companyUserId}</span></div>
+                                                <div className="form-row"><label>고객사 ID</label><span>{companyUserDetail.companyId}</span></div>
+                                                <div className="form-row"><label>고객사명</label><span>{companyUserDetail.companyName}</span></div>
+                                                <div className="form-row"><label>*이름</label><input type="text" value={companyUserDetail.companyUserName} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserName: e.target.value })} /></div>
+                                                <div className="form-row"><label>전화번호</label><input type="text" value={companyUserDetail.companyUserPhone} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserPhone: e.target.value })} /></div>
+                                                <div className="form-row"><label>*이메일</label><input type="text" value={companyUserDetail.companyUserEmail} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserEmail: e.target.value })} /></div>
+                                                <div className="form-row"><label>직급</label><input type="text" value={companyUserDetail.companyUserPosition} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserPosition: e.target.value })} /></div>
+                                                <div className="form-row"><label>부서</label><input type="text" value={companyUserDetail.companyUserDivision} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserDivision: e.target.value })} /></div>
                                                 <button type="submit">저장</button>
                                             </form>
                                         </div>
                                     ) : (
                                         <div className="container">
                                             <h3>고객사 사원 상세 정보</h3>
+                                            <div className="form-row"><label>고객사원 ID</label><span>{selectedCompanyUser.companyUserId}</span></div>
                                             <div className="form-row"><label>고객사 ID</label><span>{companyUserDetail.companyId}</span></div>
                                             <div className="form-row"><label>고객사명</label><span>{companyUserDetail.companyName}</span></div>
                                             <div className="form-row"><label>이름</label><span>{companyUserDetail.companyUserName}</span></div>

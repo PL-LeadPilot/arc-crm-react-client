@@ -51,6 +51,7 @@ function CompanyPage() {
     const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const [showAddForm, setShowAddForm] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -75,7 +76,7 @@ function CompanyPage() {
                 return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
             }
 
-            // 새로 추가된 정렬 기준은 뒤에 붙이기
+            // 새로 등록된 정렬 기준은 뒤에 붙이기
             return [...prev, { key, order: nextOrder }];
         });
     };
@@ -213,7 +214,9 @@ function CompanyPage() {
 
             if (!response.ok) throw new Error('고객사 등록에 실패했습니다.');
 
+            alert('고객사 등록에 성공했습니다.');
             await fetchCompanies();
+            setShowAddForm(false);
             setNewCompany(initialCompanyState);
             setError(null);
         } catch (err) {
@@ -232,8 +235,8 @@ function CompanyPage() {
             const response = await fetch('/company', {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     companyId: companyDetail.companyId,
@@ -243,7 +246,7 @@ function CompanyPage() {
                 }),
             });
 
-            if (!response.ok) throw new Error('고객사 수정 실패');
+            if (!response.ok) throw new Error('고객사 수정에 실패했습니다.');
 
             await fetchCompanies();
             await fetchCompanyDetails(companyDetail.companyId);
@@ -264,8 +267,8 @@ function CompanyPage() {
             const response = await fetch('/company', {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     companyId: companyDetail.companyId,
@@ -283,7 +286,9 @@ function CompanyPage() {
             setEditMode(false);
             await fetchCompanies();
         } catch (err) {
-            alert(`삭제 실패: ${(err as Error).message}`);
+            alert((err as Error).message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -310,30 +315,24 @@ function CompanyPage() {
             <div className="content">
                 <div className="content-box">
                     <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
-                    <button onClick={() => { setPage(0); searchCompanies(); }} > 검색하기 </button>
+                    <button type="button" onClick={() => { setPage(0); searchCompanies(); }} > 검색하기 </button>
+                    <button type="button" onClick={() => setShowAddForm(true)}>고객사 등록</button>
                 </div>
 
-                <div className="content-box">
-                    <input
-                        type="text"
-                        placeholder="*고객사명"
-                        value={newCompany.companyName}
-                        onChange={(e) => setNewCompany({ ...newCompany, companyName: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="*고객사 주소"
-                        value={newCompany.companyAddress}
-                        onChange={(e) => setNewCompany({ ...newCompany, companyAddress: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="*담당자 ID"
-                        value={newCompany.userId}
-                        onChange={(e) => setNewCompany({ ...newCompany, userId: e.target.value })}
-                    />
-                    <button onClick={() => addCompany(newCompany)} >고객사 추가</button>
-                </div>
+                {showAddForm && (
+                    <div className="overlay">
+                        <div className="container">
+                            <h3>고객사 등록</h3>
+                            <div className="form-row"><label>*고객사명</label><input type="text" value={newCompany.companyName} onChange={(e) => setNewCompany({ ...newCompany, companyName: e.target.value })}/></div>
+                            <div className="form-row"><label>고객사 주소</label><input type="text" value={newCompany.companyAddress} onChange={(e) => setNewCompany({ ...newCompany, companyAddress: e.target.value })}/></div>
+                            <div className="form-row"><label>*담당자 ID</label><input type="text" value={newCompany.userId} onChange={(e) => setNewCompany({ ...newCompany, userId: e.target.value })}/></div>
+                            <div className="form-row">
+                                <button type="button" className="nav-button" onClick={() => addCompany(newCompany)}>등록</button>
+                                <button type="button" className="nav-button" onClick={() => {setShowAddForm(false); setNewCompany(initialCompanyState); }}>취소</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Table */}
                 {loading && <p>로딩 중...</p>}
@@ -378,11 +377,11 @@ function CompanyPage() {
                     &lt;
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i).map((i) => {
+                {Array.from({ length: totalPages }, (_, i) => {
                     if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
                         return (
                             <button
-                                key={i}
+                                key={`page-${i}`}
                                 onClick={() => setPage(i)}
                                 className={`page-button ${page === i ? 'active' : ''}`}
                             >
@@ -390,14 +389,16 @@ function CompanyPage() {
                             </button>
                         );
                     }
+
                     if (
                         (i === 1 && page > 3) ||
                         (i === totalPages - 2 && page < totalPages - 4) ||
                         (Math.abs(i - page) === 2)
                     ) {
-                        return <span key={i} className="page-dots">...</span>;
+                        return <span key={`dots-${i}`} className="page-dots">...</span>;
                     }
-                    return null;
+
+                    return <React.Fragment key={`empty-${i}`} />;
                 })}
 
                 <button
@@ -421,24 +422,17 @@ function CompanyPage() {
                             <div className="container">
                                 <form onSubmit={handleCompanyUpdate}>
                                     <h2>고객사 정보 수정</h2>
-                                    <div className="form-row">
-                                        <label>*고객사명</label>
-                                        <input type="text" value={companyDetail.companyName} onChange={(e) => setCompanyDetail({ ...companyDetail, companyName: e.target.value })} />
-                                    </div>
-                                    <div className="form-row">
-                                        <label>고객사 주소</label>
-                                        <input type="text" value={companyDetail.companyAddress} onChange={(e) => setCompanyDetail({ ...companyDetail, companyAddress: e.target.value })} />
-                                    </div>
-                                    <div className="form-row">
-                                        <label>*유저 ID</label>
-                                        <input type="text" value={companyDetail.userId} onChange={(e) => setCompanyDetail({ ...companyDetail, userId: e.target.value })} />
-                                    </div>
+                                    <div className="form-row"><label>고객사 ID</label><span>{selectedCompany!.companyId}</span></div>
+                                    <div className="form-row"><label>*고객사명</label><input type="text" value={companyDetail.companyName} onChange={(e) => setCompanyDetail({ ...companyDetail, companyName: e.target.value })} /></div>
+                                    <div className="form-row"><label>고객사 주소</label><input type="text" value={companyDetail.companyAddress} onChange={(e) => setCompanyDetail({ ...companyDetail, companyAddress: e.target.value })} /></div>
+                                    <div className="form-row"><label>*유저 ID</label><input type="text" value={companyDetail.userId} onChange={(e) => setCompanyDetail({ ...companyDetail, userId: e.target.value })} /></div>
                                     <button type="submit">저장</button>
                                 </form>
                             </div>
                         ) : (
                             <div className="container">
                                 <h3>고객사 상세 정보</h3>
+                                <div className="form-row"><label>고객사 ID</label><span>{selectedCompany!.companyId}</span></div>
                                 <div className="form-row"><label>고객사명</label><span>{companyDetail.companyName}</span></div>
                                 <div className="form-row"><label>고객사 주소</label><span>{companyDetail.companyAddress}</span></div>
                                 <div className="form-row"><label>담당자</label><span>{companyDetail.userName}</span></div>
