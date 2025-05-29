@@ -236,7 +236,7 @@ function DealPage() {
         if (!dealData.userId.trim()) { return setError('담당자 ID는 필수입니다.')}
         if (!dealData.sourceType.trim()) { return setError('유입 경로는 필수입니다.')}
         if (!dealData.statusType.trim()) { return setError('영업 상태는 필수입니다.')}
-        if (!dealData.dealAt.trim()) { return setError('영업 날짜는 필수입니다.')}
+        if (!dealData.dealAt.trim()) { return setError('영업 일자는 필수입니다.')}
 
         setLoading(true);
         try {
@@ -489,7 +489,7 @@ function DealPage() {
                             <th><button onClick={() => toggleSort('userName')}>담당자{getSortIcon('userName')}</button></th>
                             <th><button onClick={() => toggleSort('sourceType')}>유입 경로{getSortIcon('sourceType')}</button></th>
                             <th><button onClick={() => toggleSort('statusType')}>영업 상태{getSortIcon('statusType')}</button></th>
-                            <th><button onClick={() => toggleSort('dealAt')}>영업 날짜{getSortIcon('dealAt')}</button></th>
+                            <th><button onClick={() => toggleSort('dealAt')}>영업 일자{getSortIcon('dealAt')}</button></th>
                         </tr>
                         </thead>
                         <tbody>

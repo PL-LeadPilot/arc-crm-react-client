@@ -19,6 +19,11 @@ interface Contact {
     contactPercentage: number;
 }
 
+interface ContactDetails extends Contact {
+    contactMemo: string;
+    updatedAt: string;
+}
+
 type SortKey = keyof Contact;
 
 type SortState = {
@@ -39,11 +44,25 @@ function ContactHistoryPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showAddForm, setShowAddForm] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/login');
     };
+
+    const initialContactState = {
+        dealId: '',
+        companyId: '',
+        companyUserId: '',
+        userId: '',
+        contactType: '',
+        contactResult: '',
+        contactAt: '',
+        contactPercentage: 0,
+        contactMemo: '',
+    };
+    const [newContact, setNewContact] = useState(initialContactState);
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
@@ -129,6 +148,53 @@ function ContactHistoryPage() {
         }
     };
 
+    const addContact = async (contactData: {
+        dealId: number;
+        companyId: number;
+        companyUserId: number;
+        userId: string;
+        contactType: string;
+        contactResult: string;
+        contactAt: string;
+        contactPercentage: number;
+        contactMemo: string;
+    }) => {
+        if (!contactData.dealId || isNaN(contactData.dealId)) { return setError('영업 ID는 필수입니다.'); }
+        if (!contactData.companyId || isNaN(contactData.companyId)) { return setError('고객사 ID는 필수입니다.'); }
+        if (!contactData.companyUserId || isNaN(contactData.companyUserId)) { return setError('고객사 사원 ID는 필수입니다.'); }
+        if (!contactData.userId.trim()) { return setError('담당자 ID는 필수입니다.'); }
+        if (!contactData.contactAt.trim()) { return setError('컨택 일자는 필수입니다.'); }
+
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    ...contactData,
+                    contactType: newContact.contactType,
+                    contactResult: newContact.contactResult,
+                }),
+            });
+
+            if (!response.ok) throw new Error('등록 실패');
+
+            alert('컨택 이력이 추가되었습니다.');
+            setShowAddForm(false);
+            await fetchContacts();
+            setNewContact(initialContactState);
+            setError(null);
+        } catch (err) {
+            alert((err as Error).message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (searchMode) searchContacts();
         else fetchContacts();
@@ -148,7 +214,65 @@ function ContactHistoryPage() {
                     <input placeholder="담당자명 검색" value={searchUserName} onChange={(e) => setSearchUserName(e.target.value)} />
                     <input placeholder="영업명 검색" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} />
                     <button onClick={() => { setPage(0); searchContacts(); }}>검색하기</button>
+                    <button onClick={() => setShowAddForm(true)}>컨택이력 추가</button>
                 </div>
+
+                {showAddForm && (
+                    <div className="overlay">
+                        <div className="container">
+                            <h3>컨택 이력 추가</h3>
+                            <form>
+                                <div className="form-row"><label>*영업 ID</label><input type="number" value={newContact.dealId} onChange={(e) => setNewContact({ ...newContact, dealId: e.target.value })} /></div>
+                                <div className="form-row"><label>*고객사 ID</label><input type="number" value={newContact.companyId} onChange={(e) => setNewContact({ ...newContact, companyId: e.target.value })} /></div>
+                                <div className="form-row"><label>*고객사원 ID</label><input type="number" value={newContact.companyUserId} onChange={(e) => setNewContact({ ...newContact, companyUserId: e.target.value })} /></div>
+                                <div className="form-row"><label>*담당자 ID</label><input type="text" value={newContact.userId} onChange={(e) => setNewContact({ ...newContact, userId: e.target.value })} /></div>
+                                <div className="form-row"><label>*컨택 유형</label>
+                                    <select value={newContact.contactType} onChange={(e) => setNewContact({ ...newContact, contactType: e.target.value })}>
+                                        <option value="EMAIL">EMAIL</option>
+                                        <option value="CALL">CALL</option>
+                                        <option value="MEETING">MEETING</option>
+                                    </select>
+                                </div>
+                                <div className="form-row"><label>*컨택 결과</label>
+                                    <select value={newContact.contactResult} onChange={(e) => setNewContact({ ...newContact, contactResult: e.target.value })}>
+                                        <option value="REFUSE">REFUSE</option>
+                                        <option value="PROGRESS">PROGRESS</option>
+                                        <option value="PENDING">PENDING</option>
+                                        <option value="COMPLETE">COMPLETE</option>
+                                    </select>
+                                </div>
+                                <div className="form-row"><label>*컨택 일자</label><input type="date" value={newContact.contactAt} onChange={(e) => setNewContact({ ...newContact, contactAt: e.target.value })} /></div>
+                                <div className="form-row">
+                                    <label>*진행률(%)</label>
+                                    <input type="number" min={0} max={100} value={newContact.contactPercentage}
+                                        onChange={(e) => {
+                                            const value = parseInt(e.target.value, 10);
+                                            if (value >= 0 && value <= 100) {
+                                                setNewContact({ ...newContact, contactPercentage: value });
+                                            } else if (e.target.value === '') {
+                                                setNewContact({ ...newContact, contactPercentage: 0 });
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <div className="form-row"><label>메모</label><input type="text" value={newContact.contactMemo} onChange={(e) => setNewContact({...newContact, contactMemo: e.target.value})} /></div>
+                                <div className="form-row">
+                                    <button type="button" className="nav-button" onClick={() => {
+                                            addContact({
+                                                ...newContact,
+                                                dealId: parseInt(newContact.dealId, 10) || 0,
+                                                companyId: parseInt(newContact.companyId, 10) || 0,
+                                                companyUserId: parseInt(newContact.companyUserId, 10) || 0,
+                                            });
+                                        }}
+                                    > 등록
+                                    </button>
+                                    <button type="button" onClick={() => setShowAddForm(false)} className="nav-button">취소</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
 
                 {/* Table */}
                 {loading && <p>로딩 중...</p>}
@@ -161,7 +285,7 @@ function ContactHistoryPage() {
                             <th><button onClick={() => toggleSort('userName')}>담당자{getSortIcon('userName')}</button></th>
                             <th><button onClick={() => toggleSort('contactType')}>유형{getSortIcon('contactType')}</button></th>
                             <th><button onClick={() => toggleSort('contactResult')}>결과{getSortIcon('contactResult')}</button></th>
-                            <th><button onClick={() => toggleSort('contactPercentage')}>성공률{getSortIcon('contactPercentage')}</button></th>
+                            <th><button onClick={() => toggleSort('contactPercentage')}>진행률{getSortIcon('contactPercentage')}</button></th>
                             <th><button onClick={() => toggleSort('contactAt')}>컨택 일자{getSortIcon('contactAt')}</button></th>
                         </tr>
                         </thead>
