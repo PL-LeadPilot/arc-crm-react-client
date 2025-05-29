@@ -373,10 +373,10 @@ function DealPage() {
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
-                    <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} style={{ flex: 1 }} />
-                    <input type="text" placeholder="고객사 사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} style={{ flex: 1 }} />
-                    <input type="text" placeholder="영업명 검색" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} style={{ flex: 1 }} />
-                    <button onClick={() => { setPage(0); searchDeals(); }} >검색하기</button>
+                    <input type="text" placeholder="고객사명" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
+                    <input type="text" placeholder="고객사 사원명" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} />
+                    <input type="text" placeholder="영업명" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} />
+                    <button onClick={() => { setPage(0); searchDeals(); }} >검색</button>
                     <button onClick={() => setShowAddForm(true)} >영업이력 등록</button>
                 </div>
 
@@ -423,174 +423,187 @@ function DealPage() {
                 {loading && <p>로딩 중...</p>}
                 {error && <p className="error">{error}</p>}
                 {!loading && (
-                    <table className="table">
-                        <thead>
-                        <tr>
-                            <th><button onClick={() => toggleSort('dealId')}>영업 ID{getSortIcon('dealId')}</button></th>
-                            <th><button onClick={() => toggleSort('dealName')}>영업명{getSortIcon('dealName')}</button></th>
-                            <th><button onClick={() => toggleSort('companyId')}>고객사 ID{getSortIcon('companyId')}</button></th>
-                            <th><button onClick={() => toggleSort('companyUserId')}>고객사 사원 ID{getSortIcon('companyUserId')}</button></th>
-                            <th><button onClick={() => toggleSort('userName')}>담당자{getSortIcon('userName')}</button></th>
-                            <th><button onClick={() => toggleSort('sourceType')}>유입 경로{getSortIcon('sourceType')}</button></th>
-                            <th><button onClick={() => toggleSort('statusType')}>영업 상태{getSortIcon('statusType')}</button></th>
-                            <th><button onClick={() => toggleSort('dealAt')}>영업 일자{getSortIcon('dealAt')}</button></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {sorted.map((d) => (
-                            <tr key={d.dealId} className="open-slide-panel"
-                                onClick={() => {
-                                    setSelectedDeal(d);
-                                    fetchDealDetails(d.dealId);
-                                    fetchContactByDeal(d.dealId);
-                                }}>
-                                <td>{d.dealId}</td>
-                                <td>{d.dealName}</td>
-                                <td>{d.companyId}</td>
-                                <td>{d.companyUserId}</td>
-                                <td>{d.userName}</td>
-                                <td>{d.sourceType}</td>
-                                <td>{d.statusType}</td>
-                                <td>{new Date(d.dealAt).toLocaleDateString()}</td>
+                    <>
+                        <table className="table">
+                            <thead>
+                            <tr>
+                                <th><button onClick={() => toggleSort('dealId')}>영업 ID{getSortIcon('dealId')}</button></th>
+                                <th><button onClick={() => toggleSort('dealName')}>영업명{getSortIcon('dealName')}</button></th>
+                                <th><button onClick={() => toggleSort('companyId')}>고객사 ID{getSortIcon('companyId')}</button></th>
+                                <th><button onClick={() => toggleSort('companyUserId')}>고객사 사원 ID{getSortIcon('companyUserId')}</button></th>
+                                <th><button onClick={() => toggleSort('userName')}>담당자{getSortIcon('userName')}</button></th>
+                                <th><button onClick={() => toggleSort('sourceType')}>유입 경로{getSortIcon('sourceType')}</button></th>
+                                <th><button onClick={() => toggleSort('statusType')}>영업 상태{getSortIcon('statusType')}</button></th>
+                                <th><button onClick={() => toggleSort('dealAt')}>영업 일자{getSortIcon('dealAt')}</button></th>
                             </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                )}
-            </div>
+                            </thead>
+                            <tbody>
+                            {sorted.map((d) => (
+                                <tr key={d.dealId} className="open-slide-panel"
+                                    onClick={() => {
+                                        setSelectedDeal(d);
+                                        fetchDealDetails(d.dealId);
+                                        fetchContactByDeal(d.dealId);
+                                    }}>
+                                    <td>{d.dealId}</td>
+                                    <td>{d.dealName}</td>
+                                    <td>{d.companyId}</td>
+                                    <td>{d.companyUserId}</td>
+                                    <td>{d.userName}</td>
+                                    <td>{d.sourceType}</td>
+                                    <td>{d.statusType}</td>
+                                    <td>{new Date(d.dealAt).toLocaleDateString()}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
 
-            {/* Pagination */}
-            <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
-                <button
-                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-                    disabled={page === 0}
-                    className="page-button"
-                >
-                    &lt;
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => {
-                    if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
-                        return (
+                        {/* Pagination */}
+                        <div className="pagination">
                             <button
-                                key={`page-${i}`}
-                                onClick={() => setPage(i)}
-                                className={`page-button ${page === i ? 'active' : ''}`}
+                                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                                disabled={page === 0}
+                                className="page-button"
                             >
-                                {i + 1}
+                                &lt;
                             </button>
-                        );
-                    }
 
-                    if (
-                        (i === 1 && page > 3) ||
-                        (i === totalPages - 2 && page < totalPages - 4) ||
-                        (Math.abs(i - page) === 2)
-                    ) {
-                        return <span key={`dots-${i}`} className="page-dots">...</span>;
-                    }
+                            {Array.from({ length: totalPages }, (_, i) => {
+                                if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
+                                    return (
+                                        <button
+                                            key={`page-${i}`}
+                                            onClick={() => setPage(i)}
+                                            className={`page-button ${page === i ? 'active' : ''}`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    );
+                                }
 
-                    return <React.Fragment key={`empty-${i}`} />;
-                })}
+                                if (
+                                    (i === 1 && page > 3) ||
+                                    (i === totalPages - 2 && page < totalPages - 4) ||
+                                    (Math.abs(i - page) === 2)
+                                ) {
+                                    return <span key={`dots-${i}`} className="page-dots">...</span>;
+                                }
 
-                <button
-                    onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
-                    disabled={page === totalPages - 1}
-                    className="page-button"
-                >
-                    &gt;
-                </button>
-            </div>
+                                return <React.Fragment key={`empty-${i}`} />;
+                            })}
 
-            {/* Slide Panel */}
-            {selectedDeal && dealDetail && (
-                <>
-                    <div className="slide-overlay" onClick={() => { setSelectedDeal(null); setEditMode(false); }}></div>
-                    <div className={`slide-panel open`}>
-                        <button className="slide-close-button" onClick={() => { setSelectedDeal(null); setEditMode(false); }}>×</button>
-                        {detailLoading ? (
-                            <p>로딩 중...</p>
-                        ) : editMode ? (
-                            <div className="container">
-                                <form onSubmit={handleDealUpdate}>
-                                    <h2>영업 이력 수정</h2>
-                                    <div className="form-row"><label>영업 ID</label><span>{selectedDeal!.dealId}</span></div>
-                                    <div className="form-row"><label>*영업명</label><input type="text" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
-                                    <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
-                                    <div className="form-row"><label>*고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} onChange={(e) => setDealDetail({ ...dealDetail, companyUserId: Number(e.target.value) })}/></div>
-                                    <div className="form-row"><label>*유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
-                                    <div className="form-row"><label>*유입 경로</label>
-                                        <select value={dealDetail.sourceType} onChange={(e) => setDealDetail({ ...dealDetail, sourceType: e.target.value })}>
-                                            <option value="INBOUND">INBOUND</option>
-                                            <option value="OUTBOUND">OUTBOUND</option>
-                                        </select>
-                                    </div>
-                                    <div className="form-row"><label>*영업 상태</label>
-                                        <select value={dealDetail.statusType} onChange={(e) => setDealDetail({ ...dealDetail, statusType: e.target.value })}>
-                                            <option value="NEW">NEW</option>
-                                            <option value="CONTACTED">CONTACTED</option>
-                                            <option value="IN_PROGRESS">IN_PROGRESS</option>
-                                            <option value="COMPLETED">COMPLETED</option>
-                                        </select>
-                                    </div>
-                                    <div className="form-row"><label>*영업 일자</label><input type="date" value={dealDetail.dealAt} onChange={(e) => setDealDetail({ ...dealDetail, dealAt: e.target.value })} /></div>
-                                    <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
-                                    <button type="submit">저장</button>
-                                </form>
-                            </div>
-                        ) : (
-                            <div className="container">
-                                <h3>영업 상세 정보</h3>
-                                <div className="form-row"><label>영업 ID</label><span>{selectedDeal!.dealId}</span></div>
-                                <div className="form-row"><label>영업명</label><span>{dealDetail.dealName}</span></div>
-                                <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
-                                <div className="form-row"><label>고객사 사원 ID</label><span>{dealDetail.companyUserId}</span></div>
-                                <div className="form-row"><label>담당자</label><span>{dealDetail.userName}</span></div>
-                                <div className="form-row"><label>유입 경로</label><span>{dealDetail.sourceType}</span></div>
-                                <div className="form-row"><label>영업 상태</label><span>{dealDetail.statusType}</span></div>
-                                <div className="form-row"><label>영업 일자</label><span>{new Date(dealDetail.dealAt).toLocaleDateString()}</span></div>
-                                <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
-                                <button className="nav-button" onClick={() => setEditMode(true)}>영업 이력 수정하기</button>
-                                <div className="container-delete">
-                                    <span onClick={handleDelete} >영업 이력 삭제하기</span>
-                                </div>
-                                <div className="container-contain">
-                                    {contact.length === 0 ? (
-                                        <p>등록된 컨택 이력이 없습니다.</p>
+                            <button
+                                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+                                disabled={page === totalPages - 1}
+                                className="page-button"
+                            >
+                                &gt;
+                            </button>
+                        </div>
+
+                        {/* Slide Panel */}
+                        {selectedDeal && dealDetail && (
+                            <>
+                                <div className="slide-overlay" onClick={() => { setSelectedDeal(null); setEditMode(false); }}></div>
+                                <div className={`slide-panel open`}>
+                                    <button className="slide-close-button" onClick={() => { setSelectedDeal(null); setEditMode(false); }}>×</button>
+                                    {detailLoading ? (
+                                        <p>로딩 중...</p>
+                                    ) : editMode ? (
+                                        <div className="container">
+                                            <form onSubmit={handleDealUpdate}>
+                                                <h3>영업 이력 수정</h3>
+                                                <div className="form-row"><label>영업 ID</label><span>{selectedDeal!.dealId}</span></div>
+                                                <div className="form-row"><label>*영업명</label><input type="text" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
+                                                <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
+                                                <div className="form-row"><label>*고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} onChange={(e) => setDealDetail({ ...dealDetail, companyUserId: Number(e.target.value) })}/></div>
+                                                <div className="form-row"><label>*유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
+                                                <div className="form-row"><label>*유입 경로</label>
+                                                    <select value={dealDetail.sourceType} onChange={(e) => setDealDetail({ ...dealDetail, sourceType: e.target.value })}>
+                                                        <option value="INBOUND">INBOUND</option>
+                                                        <option value="OUTBOUND">OUTBOUND</option>
+                                                    </select>
+                                                </div>
+                                                <div className="form-row"><label>*영업 상태</label>
+                                                    <select value={dealDetail.statusType} onChange={(e) => setDealDetail({ ...dealDetail, statusType: e.target.value })}>
+                                                        <option value="NEW">NEW</option>
+                                                        <option value="CONTACTED">CONTACTED</option>
+                                                        <option value="IN_PROGRESS">IN_PROGRESS</option>
+                                                        <option value="COMPLETED">COMPLETED</option>
+                                                    </select>
+                                                </div>
+                                                <div className="form-row"><label>*영업 일자</label><input type="date" value={dealDetail.dealAt} onChange={(e) => setDealDetail({ ...dealDetail, dealAt: e.target.value })} /></div>
+                                                <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
+                                                <div className="form-row">
+                                                    <button type="submit">저장</button>
+                                                    <button
+                                                        type="button"
+                                                        className="nav-button"
+                                                        onClick={() => {
+                                                            setEditMode(false);
+                                                            setDealDetail(null);
+                                                        }}
+                                                    >취소
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
                                     ) : (
-                                        <div className="history">
-                                            <table className="table">
-                                                <thead>
-                                                <tr>
-                                                    <th onClick={() => toggleContactSort('contactId')}>컨택 ID{getContactSortIcon('contactId')}</th>
-                                                    <th onClick={() => toggleContactSort('userName')}>담당자{getContactSortIcon('userName')}</th>
-                                                    <th onClick={() => toggleContactSort('contactType')}>컨택 유형{getContactSortIcon('contactType')}</th>
-                                                    <th onClick={() => toggleContactSort('contactResult')}>컨택 결과{getContactSortIcon('contactResult')}</th>
-                                                    <th onClick={() => toggleContactSort('contactPercentage')}>진행률 (%) {getContactSortIcon('contactPercentage')}</th>
-                                                    <th onClick={() => toggleContactSort('contactAt')}>컨택 일자{getContactSortIcon('contactAt')}</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {sortedContacts.map((c) => (
-                                                    <tr key={c.contactId}>
-                                                        <td>{c.contactId}</td>
-                                                        <td>{c.userName}</td>
-                                                        <td>{c.contactType}</td>
-                                                        <td>{c.contactResult}</td>
-                                                        <td>{c.contactPercentage}</td>
-                                                        <td>{new Date(c.contactAt).toLocaleDateString()}</td>
-                                                    </tr>
-                                                ))}
-                                                </tbody>
-                                            </table>
+                                        <div className="container">
+                                            <h3>영업 상세 정보</h3>
+                                            <div className="form-row"><label>영업 ID</label><span>{selectedDeal!.dealId}</span></div>
+                                            <div className="form-row"><label>영업명</label><span>{dealDetail.dealName}</span></div>
+                                            <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
+                                            <div className="form-row"><label>고객사 사원 ID</label><span>{dealDetail.companyUserId}</span></div>
+                                            <div className="form-row"><label>담당자</label><span>{dealDetail.userName}</span></div>
+                                            <div className="form-row"><label>유입 경로</label><span>{dealDetail.sourceType}</span></div>
+                                            <div className="form-row"><label>영업 상태</label><span>{dealDetail.statusType}</span></div>
+                                            <div className="form-row"><label>영업 일자</label><span>{new Date(dealDetail.dealAt).toLocaleDateString()}</span></div>
+                                            <div className="form-row"><label>수정일</label><span>{new Date(dealDetail.updatedAt).toLocaleString()}</span></div>
+                                            <button className="nav-button" onClick={() => setEditMode(true)}>수정</button>
+                                            <div className="container-delete">
+                                                <span onClick={handleDelete} >영업 이력 삭제</span>
+                                            </div>
+                                            <div className="container-contain">
+                                                {contact.length === 0 ? (
+                                                    <p>등록된 컨택 이력이 없습니다.</p>
+                                                ) : (
+                                                    <div className="history">
+                                                        <table className="table">
+                                                            <thead>
+                                                            <tr>
+                                                                <th onClick={() => toggleContactSort('contactId')}>컨택 ID{getContactSortIcon('contactId')}</th>
+                                                                <th onClick={() => toggleContactSort('userName')}>담당자{getContactSortIcon('userName')}</th>
+                                                                <th onClick={() => toggleContactSort('contactType')}>컨택 유형{getContactSortIcon('contactType')}</th>
+                                                                <th onClick={() => toggleContactSort('contactResult')}>컨택 결과{getContactSortIcon('contactResult')}</th>
+                                                                <th onClick={() => toggleContactSort('contactPercentage')}>진행률 (%) {getContactSortIcon('contactPercentage')}</th>
+                                                                <th onClick={() => toggleContactSort('contactAt')}>컨택 일자{getContactSortIcon('contactAt')}</th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            {sortedContacts.map((c) => (
+                                                                <tr key={c.contactId}>
+                                                                    <td>{c.contactId}</td>
+                                                                    <td>{c.userName}</td>
+                                                                    <td>{c.contactType}</td>
+                                                                    <td>{c.contactResult}</td>
+                                                                    <td>{c.contactPercentage}</td>
+                                                                    <td>{new Date(c.contactAt).toLocaleDateString()}</td>
+                                                                </tr>
+                                                            ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </>
                         )}
-                    </div>
-                </>
-            )}
+                    </>
+                )}
+            </div>
         </div>
     );
 }

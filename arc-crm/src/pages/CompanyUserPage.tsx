@@ -367,9 +367,9 @@ function CompanyUserPage() {
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
-                    <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
-                    <input type="text" placeholder="사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} />
-                    <button type="button" onClick={() => { setPage(0); searchCompanyUsers(); }} >검색하기</button>
+                    <input type="text" placeholder="고객사명" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
+                    <input type="text" placeholder="사원명" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} />
+                    <button type="button" onClick={() => { setPage(0); searchCompanyUsers(); }} >검색</button>
                     <button type="button" onClick={() => setShowAddForm(true)}>고객사 사원 등록</button>
                 </div>
 
@@ -462,8 +462,7 @@ function CompanyUserPage() {
                                         setShowAddForm(false);
                                         setNewCompanyUser(initialCompanyUserState);
                                     }}
-                                >
-                                    취소
+                                >취소
                                 </button>
                             </div>
                         </div>
@@ -507,7 +506,7 @@ function CompanyUserPage() {
                         </table>
 
                         {/* Pagination */}
-                        <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                        <div className="pagination">
                             <button
                                 onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                                 disabled={page === 0}
@@ -559,7 +558,7 @@ function CompanyUserPage() {
                                     ) : editMode ? (
                                         <div className="container">
                                             <form onSubmit={handleCompanyUserUpdate}>
-                                                <h2>고객사 사원 정보 수정</h2>
+                                                <h3>고객사 사원 정보 수정</h3>
                                                 <div className="form-row"><label>고객사원 ID</label><span>{selectedCompanyUser.companyUserId}</span></div>
                                                 <div className="form-row"><label>고객사 ID</label><span>{companyUserDetail.companyId}</span></div>
                                                 <div className="form-row"><label>고객사명</label><span>{companyUserDetail.companyName}</span></div>
@@ -568,7 +567,18 @@ function CompanyUserPage() {
                                                 <div className="form-row"><label>*이메일</label><input type="text" value={companyUserDetail.companyUserEmail} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserEmail: e.target.value })} /></div>
                                                 <div className="form-row"><label>직급</label><input type="text" value={companyUserDetail.companyUserPosition} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserPosition: e.target.value })} /></div>
                                                 <div className="form-row"><label>부서</label><input type="text" value={companyUserDetail.companyUserDivision} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserDivision: e.target.value })} /></div>
-                                                <button type="submit">저장</button>
+                                                <div className="form-row">
+                                                    <button type="submit" className="nav-button">저장</button>
+                                                    <button
+                                                        type="button"
+                                                        className="nav-button"
+                                                        onClick={() => {
+                                                            setEditMode(false);
+                                                            setCompanyUserDetail(null);
+                                                        }}
+                                                    >취소
+                                                    </button>
+                                                </div>
                                             </form>
                                         </div>
                                     ) : (
@@ -583,12 +593,14 @@ function CompanyUserPage() {
                                             <div className="form-row"><label>직급</label><span>{companyUserDetail.companyUserPosition}</span></div>
                                             <div className="form-row"><label>부서</label><span>{companyUserDetail.companyUserDivision}</span></div>
                                             <div className="form-row"><label>수정일</label><span>{new Date(companyUserDetail.updatedAt).toLocaleString()}</span></div>
-                                            <button className="nav-button" onClick={() => setEditMode(true)}>고객사 사원 정보 수정하기</button>
+                                            <button className="nav-button" onClick={() => setEditMode(true)}>수정</button>
                                             <div className="container-delete">
-                                                <span onClick={handleDelete} >고객사 사원 정보 삭제하기</span>
+                                                <span onClick={handleDelete} >고객사 사원 정보 삭제</span>
                                             </div>
                                             <div className="container-contain">
-                                                {deals.length === 0 ? <p>영업 이력이 없습니다.</p> : (
+                                                {deals.length === 0 ? (
+                                                    <p>등록된 영업 이력이 없습니다.</p>
+                                                ) : (
                                                     <div className="history">
                                                         <table className="table">
                                                             <thead>
@@ -615,13 +627,11 @@ function CompanyUserPage() {
                                                     </div>
                                                 )}
                                             </div>
-
                                         </div>
-                                        )}
+                                    )}
                                 </div>
                             </>
                         )}
-
                     </>
                 )}
             </div>

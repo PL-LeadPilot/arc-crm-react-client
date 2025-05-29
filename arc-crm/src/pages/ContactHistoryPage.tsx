@@ -21,6 +21,7 @@ interface Contact {
 
 interface ContactDetails extends Contact {
     contactMemo: string;
+    userId: string;
     updatedAt: string;
 }
 
@@ -33,7 +34,7 @@ type SortState = {
 
 function ContactHistoryPage() {
     const navigate = useNavigate();
-    const [contacts, setContacts] = useState<Contact[]>([]);
+    const [contactHistory, setContactHistory] = useState<Contact[]>([]);
     const [searchCompanyName, setSearchCompanyName] = useState('');
     const [searchCompanyUserName, setSearchCompanyUserName] = useState('');
     const [searchUserName, setSearchUserName] = useState('');
@@ -48,6 +49,7 @@ function ContactHistoryPage() {
     const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
     const [contactHistoryDetail, setContactHistoryDetail] = useState<ContactDetails | null>(null);
+    const [editMode, setEditMode] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -107,7 +109,7 @@ function ContactHistoryPage() {
             });
             if (!response.ok) throw new Error('컨택 이력을 불러오는데 실패했습니다.');
             const data = await response.json();
-            setContacts(data.content);
+            setContactHistory(data.content);
             setTotalPages(data.totalPages);
             setError(null);
         } catch (err) {
@@ -117,7 +119,7 @@ function ContactHistoryPage() {
         }
     };
 
-    const fetchContactHIstoryDetails = async (contactId: number) => {
+    const fetchContactHistoryDetails = async (contactId: number) => {
         setDetailLoading(true);
         setError(null);
         try {
@@ -128,18 +130,18 @@ function ContactHistoryPage() {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ contactId: contactId }),
+                body: JSON.stringify({ contactId }),
             });
+
             if (!response.ok) throw new Error('상세 정보를 불러오는데 실패했습니다.');
             const data = await response.json();
-            const fullDetail = { ...selectedContact!, ...data };
-            setContactHistoryDetail(fullDetail);
+            setContactHistoryDetail(data);
         } catch (err) {
             setError((err as Error).message);
         } finally {
             setDetailLoading(false);
         }
-    }
+    };
 
     const searchContacts = async () => {
         const noSearch = !searchCompanyName.trim() && !searchCompanyUserName.trim() && !searchUserName.trim() && !searchDealName.trim();
@@ -163,9 +165,9 @@ function ContactHistoryPage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            if (!response.ok) throw new Error('검색 실패');
+            if (!response.ok) throw new Error('검색에 실패했습니다.');
             const data = await response.json();
-            setContacts(data.content);
+            setContactHistory(data.content);
             setTotalPages(data.totalPages);
             setSearchMode(true);
             setError(null);
@@ -223,12 +225,40 @@ function ContactHistoryPage() {
         }
     };
 
+    const handleContactHistoryUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!contactHistoryDetail) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/contact', {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...contactHistoryDetail,
+                    contactId: selectedContact!.contactId,
+                }),
+            });
+
+            if (!response.ok) throw new Error('고객사 사원 정보 수정 실패');
+
+            await fetchContacts();
+            await fetchContactHistoryDetails(selectedContact!.contactId);
+            setEditMode(false);
+        } catch (err) {
+            alert((err as Error).message);
+        }
+    };
+
     useEffect(() => {
         if (searchMode) searchContacts();
         else fetchContacts();
     }, [page]);
 
-    const sorted = multiSort(contacts);
+    const sorted = multiSort(contactHistory);
 
     return (
         <div className="page">
@@ -237,11 +267,11 @@ function ContactHistoryPage() {
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
-                    <input placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
-                    <input placeholder="고객사 사원명 검색" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} />
-                    <input placeholder="담당자명 검색" value={searchUserName} onChange={(e) => setSearchUserName(e.target.value)} />
-                    <input placeholder="영업명 검색" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} />
-                    <button type="button" onClick={() => { setPage(0); searchContacts(); }}>검색하기</button>
+                    <input placeholder="고객사명" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
+                    <input placeholder="고객사 사원명" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} />
+                    <input placeholder="담당자명" value={searchUserName} onChange={(e) => setSearchUserName(e.target.value)} />
+                    <input placeholder="영업명" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} />
+                    <button type="button" onClick={() => { setPage(0); searchContacts(); }}>검색</button>
                     <button type="button" onClick={() => setShowAddForm(true)}>컨택 이력 등록</button>
                 </div>
 
@@ -294,7 +324,7 @@ function ContactHistoryPage() {
                                     }}
                                     > 등록
                                     </button>
-                                    <button type="button" onClick={() => setShowAddForm(false)} className="nav-button">취소</button>
+                                    <button type="button" className="nav-button" onClick={() => { setShowAddForm(false); setNewContact(initialContactState); }} >취소</button>
                                 </div>
 
                         </div>
@@ -321,7 +351,7 @@ function ContactHistoryPage() {
                             <tr key={c.contactId} className="open-slide-panel"
                                 onClick={() => {
                                     setSelectedContact(c);
-                                    fetchContactHIstoryDetails(c.contactId);
+                                    fetchContactHistoryDetails(c.contactId);
                                 }}
                             >
                                 <td>{c.contactId}</td>
@@ -338,7 +368,7 @@ function ContactHistoryPage() {
             </div>
 
             {/* Pagination */}
-            <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <div className="pagination">
                 <button
                     onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                     disabled={page === 0}
@@ -383,11 +413,74 @@ function ContactHistoryPage() {
             { /* slide-panel */}
             {selectedContact && contactHistoryDetail && (
                 <>
-                    <div className="slide-overlay" onClick={() => setSelectedContact(null)}></div>
+                    <div className="slide-overlay" onClick={() => { setSelectedContact(null); setEditMode(false);}} ></div>
                     <div className={`slide-panel ${selectedContact && contactHistoryDetail ? 'open' : ''}`}>
-                        <button className="slide-close-button" onClick={() => setSelectedContact(null)}>×</button>
+                        <button className="slide-close-button" onClick={() => { setSelectedContact(null); setEditMode(false); }}>×</button>
                         {detailLoading ? (
                             <p>로딩 중...</p>
+                        ) : editMode ? (
+                            <div className="container">
+                                <form onSubmit={handleContactHistoryUpdate}>
+                                    <h3>컨택 이력 수정</h3>
+                                    <div className="form-row"><label>컨택 ID</label><span>{selectedContact.contactId}</span></div>
+                                    <div className="form-row"><label>영업 ID</label><span>{contactHistoryDetail.dealId}</span></div>
+                                    <div className="form-row"><label>고객사 ID</label><span>{contactHistoryDetail.companyId}</span></div>
+                                    <div className="form-row"><label>고객사원 ID</label><span>{contactHistoryDetail.companyUserId}</span></div>
+                                    <div className="form-row"><label>담당자 ID</label><input type="text" value={contactHistoryDetail.userId} onChange={(e) => setContactHistoryDetail({ ...contactHistoryDetail, userId: e.target.value })} /></div>
+                                    <div className="form-row">
+                                        <label>컨택 유형</label>
+                                        <select value={contactHistoryDetail.contactType} onChange={(e) => setContactHistoryDetail({ ...contactHistoryDetail, contactType: e.target.value })}>
+                                            <option value="EMAIL">EMAIL</option>
+                                            <option value="CALL">CALL</option>
+                                            <option value="MEETING">MEETING</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-row">
+                                        <label>컨택 결과</label>
+                                        <select value={contactHistoryDetail.contactResult} onChange={(e) => setContactHistoryDetail({ ...contactHistoryDetail, contactResult: e.target.value })}>
+                                            <option value="REFUSE">REFUSE</option>
+                                            <option value="PROGRESS">PROGRESS</option>
+                                            <option value="PENDING">PENDING</option>
+                                            <option value="COMPLETE">COMPLETE</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-row">
+                                        <label>진행률 (%)</label><input type="number" min={0} max={100}
+                                            value={contactHistoryDetail.contactPercentage}
+                                            onChange={(e) => {
+                                                const value = parseInt(e.target.value, 10);
+                                                if (!isNaN(value) && value >= 0 && value <= 100) {
+                                                    setContactHistoryDetail({ ...contactHistoryDetail, contactPercentage: value });
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="form-row">
+                                        <label>컨택 일자</label>
+                                        <input
+                                            type="date"
+                                            value={contactHistoryDetail.contactAt.slice(0, 10)}
+                                            onChange={(e) =>
+                                                setContactHistoryDetail({ ...contactHistoryDetail, contactAt: e.target.value })
+                                            }
+                                        />
+                                    </div>
+                                    <div className="form-row">
+                                        <label>메모</label>
+                                        <input type="text" value={contactHistoryDetail.contactMemo} onChange={(e) => setContactHistoryDetail({ ...contactHistoryDetail, contactMemo: e.target.value })}/>
+                                    </div>
+                                    <div className="form-row">
+                                        <button type="submit" className="nav-button">저장</button>
+                                        <button type="button" className="nav-button"
+                                                onClick={() => {
+                                                    setEditMode(false);
+                                                    setContactHistoryDetail(null);
+                                                }}
+                                        >취소
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         ) : (
                             <div className="container">
                                 <h3>컨택 이력 상세 정보</h3>
@@ -402,7 +495,7 @@ function ContactHistoryPage() {
                                 <div className="form-row"><label>컨택 일자</label><span>{new Date(contactHistoryDetail.contactAt).toLocaleDateString()}</span></div>
                                 <div className="form-row"><label>메모</label><span>{contactHistoryDetail.contactMemo || '-'}</span></div>
                                 <div className="form-row"><label>수정일</label><span>{new Date(contactHistoryDetail.updatedAt).toLocaleString()}</span></div>
-                                {/* <button className="nav-button" onClick={() => setEditMode(true)}>수정하기</button> */}
+                                <button type="button" className="nav-button" onClick={() => setEditMode(true)}>수정</button>
                             </div>
                         )}
                     </div>
