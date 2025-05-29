@@ -173,48 +173,29 @@ function UserPage() {
                                 &lt;
                             </button>
 
-                            {/* Pagination */}
-                            <div className="pagination" style={{ marginTop: '10px', display: 'flex', gap: '5px', alignItems: 'center' }}>
-                                <button
-                                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-                                    disabled={page === 0}
-                                    className="page-button"
-                                >
-                                    &lt;
-                                </button>
+                            {Array.from({ length: totalPages }, (_, i) => {
+                                if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
+                                    return (
+                                        <button
+                                            key={`page-${i}`}
+                                            onClick={() => setPage(i)}
+                                            className={`page-button ${page === i ? 'active' : ''}`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    );
+                                }
 
-                                {Array.from({ length: totalPages }, (_, i) => {
-                                    if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
-                                        return (
-                                            <button
-                                                key={`page-${i}`}
-                                                onClick={() => setPage(i)}
-                                                className={`page-button ${page === i ? 'active' : ''}`}
-                                            >
-                                                {i + 1}
-                                            </button>
-                                        );
-                                    }
+                                if (
+                                    (i === 1 && page > 3) ||
+                                    (i === totalPages - 2 && page < totalPages - 4) ||
+                                    (Math.abs(i - page) === 2)
+                                ) {
+                                    return <span key={`dots-${i}`} className="page-dots">...</span>;
+                                }
 
-                                    if (
-                                        (i === 1 && page > 3) ||
-                                        (i === totalPages - 2 && page < totalPages - 4) ||
-                                        (Math.abs(i - page) === 2)
-                                    ) {
-                                        return <span key={`dots-${i}`} className="page-dots">...</span>;
-                                    }
-
-                                    return <React.Fragment key={`empty-${i}`} />;
-                                })}
-
-                                <button
-                                    onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
-                                    disabled={page === totalPages - 1}
-                                    className="page-button"
-                                >
-                                    &gt;
-                                </button>
-                            </div>
+                                return <React.Fragment key={`empty-${i}`} />;
+                            })}
 
                             <button
                                 onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
