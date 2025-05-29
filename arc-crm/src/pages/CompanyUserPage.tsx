@@ -27,8 +27,8 @@ interface Deal {
     dealName: string;
     companyUserId: number;
     userName: string;
-    source: string;
-    status: string;
+    sourceType: string;
+    statusType: string;
     dealAt: string;
 }
 
@@ -56,6 +56,11 @@ function CompanyUserPage() {
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [deals, setDeals] = useState<Deal[]>([]);
+    type DealSortKey = keyof Deal;
+    const [dealSortState, setDealSortState] = useState<{ key: DealSortKey; order: 'asc' | 'desc' }>({
+        key: 'dealAt',
+        order: 'desc',
+    });
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -112,6 +117,34 @@ function CompanyUserPage() {
             return 0;
         });
     };
+
+    const toggleDealSort = (key: DealSortKey) => {
+        setDealSortState(prev => ({
+            key,
+            order: prev.key === key && prev.order === 'desc' ? 'asc' : 'desc',
+        }));
+    };
+
+    const getDealSortIcon = (key: DealSortKey) => {
+        if (dealSortState.key !== key) return '';
+        return dealSortState.order === 'asc' ? ' ▲' : ' ▼';
+    };
+
+    const sortedDeals = [...deals].sort((a, b) => {
+        const { key, order } = dealSortState;
+        const aVal = a[key];
+        const bVal = b[key];
+
+        let result: number;
+
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            result = aVal - bVal;
+        } else {
+            result = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+        }
+
+        return order === 'asc' ? result : -result;
+    });
 
     const fetchCompanyUsers = async () => {
         setLoading(true);
@@ -240,13 +273,8 @@ function CompanyUserPage() {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
+                    ...companyUserDetail,
                     companyUserId: selectedUser?.companyUserId,
-                    companyId: companyUserDetail.companyId,
-                    companyUserName: companyUserDetail.companyUserName,
-                    companyUserPhone: companyUserDetail.companyUserPhone,
-                    companyUserEmail: companyUserDetail.companyUserEmail,
-                    companyUserPosition: companyUserDetail.companyUserPosition,
-                    companyUserDivision: companyUserDetail.companyUserDivision,
                 }),
             });
 
@@ -517,21 +545,21 @@ function CompanyUserPage() {
                                                 {deals.length === 0 ? <p>영업 이력이 없습니다.</p> : (
                                                     <div className="history">
                                                         <table className="table">
-                                                            <thead className="header">
+                                                            <thead>
                                                             <tr>
-                                                                <th>영업명</th>
-                                                                <th>상태</th>
-                                                                <th>유입경로</th>
-                                                                <th>담당자</th>
-                                                                <th>날짜</th>
+                                                                <th onClick={() => toggleDealSort('dealName')}>영업명{getDealSortIcon('dealName')}</th>
+                                                                <th onClick={() => toggleDealSort('statusType')}>상태{getDealSortIcon('statusType')}</th>
+                                                                <th onClick={() => toggleDealSort('sourceType')}>유입경로{getDealSortIcon('sourceType')}</th>
+                                                                <th onClick={() => toggleDealSort('userName')}>담당자{getDealSortIcon('userName')}</th>
+                                                                <th onClick={() => toggleDealSort('dealAt')}>일자{getDealSortIcon('dealAt')}</th>
                                                             </tr>
                                                             </thead>
                                                             <tbody>
-                                                            {deals.map((deal) => (
+                                                            {sortedDeals.map((deal) => (
                                                                 <tr key={deal.dealId}>
                                                                     <td>{deal.dealName}</td>
-                                                                    <td>{deal.status}</td>
-                                                                    <td>{deal.source}</td>
+                                                                    <td>{deal.statusType}</td>
+                                                                    <td>{deal.sourceType}</td>
                                                                     <td>{deal.userName}</td>
                                                                     <td>{new Date(deal.dealAt).toLocaleDateString()}</td>
                                                                 </tr>
