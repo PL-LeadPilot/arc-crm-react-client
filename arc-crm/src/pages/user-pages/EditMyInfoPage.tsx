@@ -124,7 +124,7 @@ function EditMyInfoPage() {
                 </div>
             </nav>
             <div className="container">
-                <h2>내 정보 수정</h2>
+                <h3>내 정보 수정</h3>
                 <form onSubmit={handleUpdate}>
                     {fieldErrors.userCurrentPassword && <p className="error">{fieldErrors.userCurrentPassword}</p>}
                     <div className="form-row">
@@ -213,7 +213,7 @@ function EditMyInfoPage() {
                         />
                     </div>
 
-                    <button type="submit">수정 완료</button>
+                    <button type="submit">저장</button>
                     {error && <p className="error">{error}</p>}
                 </form>
             </div>

@@ -98,16 +98,16 @@ function MyInfoPage() {
                 </div>
             </nav>
             <div className="container">
-                <h2>내 정보 보기</h2>
+                <h3>내 정보 보기</h3>
                 <div className="form-row"><label>이름</label><span>{userName}</span></div>
                 <div className="form-row"><label>전화번호</label><span>{userPhone}</span></div>
                 <div className="form-row"><label>이메일</label><span>{userEmail}</span></div>
                 <div className="form-row"><label>직책</label><span>{userPosition}</span></div>
                 <div className="form-row"><label>부서</label><span>{userDivision}</span></div>
                 <div className="form-row"><label>수정일</label><span>{updatedAt}</span></div>
-                <button onClick={handleGoToEdit} className="nav-button">수정하기</button>
+                <button onClick={handleGoToEdit} className="nav-button">수정</button>
                 <div className="container-delete">
-                    <span onClick={handleDelete}> 탈퇴하기 </span>
+                    <span onClick={handleDelete}>탈퇴</span>
                 </div>
             </div>
         </>
