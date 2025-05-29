@@ -253,6 +253,42 @@ function ContactHistoryPage() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!contactHistoryDetail) return;
+
+        const confirmDelete = window.confirm('정말 컨택 이력을 삭제하시겠습니까?');
+        if (!confirmDelete) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/contact', {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contactId: selectedContact!.contactId,
+                })
+            });
+
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage);
+            }
+
+            alert('컨택 이력이 삭제되었습니다.');
+            setSelectedContact(null);
+            setContactHistoryDetail(null);
+            setEditMode(false);
+            await fetchContacts();
+        } catch (err) {
+            alert((err as Error).message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     useEffect(() => {
         if (searchMode) searchContacts();
         else fetchContacts();
@@ -496,6 +532,9 @@ function ContactHistoryPage() {
                                 <div className="form-row"><label>메모</label><span>{contactHistoryDetail.contactMemo || '-'}</span></div>
                                 <div className="form-row"><label>수정일</label><span>{new Date(contactHistoryDetail.updatedAt).toLocaleString()}</span></div>
                                 <button type="button" className="nav-button" onClick={() => setEditMode(true)}>수정</button>
+                                <div className="container-delete">
+                                    <span onClick={() => {handleDelete();}}>컨택 이력 삭제</span>
+                                </div>
                             </div>
                         )}
                     </div>
