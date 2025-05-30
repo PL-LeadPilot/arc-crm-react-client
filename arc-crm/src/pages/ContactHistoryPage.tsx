@@ -67,7 +67,7 @@ function ContactHistoryPage() {
         contactType: 'EMAIL',
         contactResult: 'REFUSE',
         contactAt: new Date().toISOString().slice(0, 10),
-        contactPercentage: 0,
+        contactPercentage: 50,
         contactMemo: '',
     };
     const [newContact, setNewContact] = useState(initialContactState);
@@ -110,7 +110,8 @@ function ContactHistoryPage() {
             const response = await fetch(`/contact?page=${page}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            if (!response.ok) throw new Error('컨택 이력을 불러오는데 실패했습니다.');
+            if (!response.ok) throw new Error('컨택 이력 조회 실패');
+
             const data = await response.json();
             setContactHistory(data.content);
             setTotalPages(data.totalPages);
@@ -136,7 +137,11 @@ function ContactHistoryPage() {
                 body: JSON.stringify({ contactId }),
             });
 
-            if (!response.ok) throw new Error('상세 정보를 불러오는데 실패했습니다.');
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '컨택 이력 상세정보 조회 실패');
+            }
+
             const data = await response.json();
             setContactHistoryDetail(data);
         } catch (err) {
@@ -154,7 +159,6 @@ function ContactHistoryPage() {
             return;
         }
 
-        setLoading(true);
         try {
             const params = new URLSearchParams();
             if (searchCompanyName) params.append('companyName', searchCompanyName);
@@ -168,7 +172,11 @@ function ContactHistoryPage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            if (!response.ok) throw new Error('검색에 실패했습니다.');
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '검색 실패');
+            }
+
             const data = await response.json();
             setContactHistory(data.content);
             setTotalPages(data.totalPages);
@@ -176,8 +184,6 @@ function ContactHistoryPage() {
             setError(null);
         } catch (err) {
             setError((err as Error).message);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -192,13 +198,12 @@ function ContactHistoryPage() {
         contactPercentage: number;
         contactMemo: string;
     }) => {
-        if (!contactData.dealId || isNaN(contactData.dealId)) { return setError('영업 ID는 필수입니다.'); }
-        if (!contactData.companyId || isNaN(contactData.companyId)) { return setError('고객사 ID는 필수입니다.'); }
-        if (!contactData.companyUserId || isNaN(contactData.companyUserId)) { return setError('고객사 사원 ID는 필수입니다.'); }
-        if (!contactData.userId.trim()) { return setError('담당자 ID는 필수입니다.'); }
-        if (!contactData.contactAt.trim()) { return setError('컨택 일자는 필수입니다.'); }
+        if (!contactData.dealId || isNaN(contactData.dealId)) { return setError('영업 ID 필수'); }
+        if (!contactData.companyId || isNaN(contactData.companyId)) { return setError('고객사 ID 필수'); }
+        if (!contactData.companyUserId || isNaN(contactData.companyUserId)) { return setError('고객사 사원 ID 필수'); }
+        if (!contactData.userId.trim()) { return setError('담당자 ID 필수'); }
+        if (!contactData.contactAt.trim()) { return setError('컨택 일자 필수'); }
 
-        setLoading(true);
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('/contact', {
@@ -214,17 +219,18 @@ function ContactHistoryPage() {
                 }),
             });
 
-            if (!response.ok) throw new Error('컨택 이력 등록에 실패했습니다.');
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '컨택 이력 등록 실패');
+            }
 
-            alert('컨택 이력 등록에 성공했습니다.');
+            alert('컨택 이력 등록 성공');
             await fetchContacts();
             setShowAddForm(false);
             setNewContact(initialContactState);
             setError(null);
         } catch (err) {
             alert((err as Error).message);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -246,7 +252,10 @@ function ContactHistoryPage() {
                 }),
             });
 
-            if (!response.ok) throw new Error('고객사 사원 정보 수정 실패');
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '컨택 이력 상세정보 수정 실패');
+            }
 
             await fetchContacts();
             await fetchContactHistoryDetails(selectedContact!.contactId);
@@ -277,18 +286,16 @@ function ContactHistoryPage() {
 
             if (!response.ok) {
                 const errorMessage = await response.text();
-                throw new Error(errorMessage);
+                throw new Error(errorMessage || '컨택 이력 삭제 실패');
             }
 
-            alert('컨택 이력이 삭제되었습니다.');
+            alert('컨택 이력이 삭제 성공');
             setSelectedContact(null);
             setContactHistoryDetail(null);
             setEditMode(false);
             await fetchContacts();
         } catch (err) {
             alert((err as Error).message);
-        } finally {
-            setLoading(false);
         }
     }
 
@@ -318,9 +325,9 @@ function ContactHistoryPage() {
                     <div className="overlay">
                         <div className="container">
                             <h3>컨택 이력 등록</h3>
-                                <div className="form-row"><label>*영업 ID</label><input type="number" value={newContact.dealId} onChange={(e) => setNewContact({ ...newContact, dealId: e.target.value })} /></div>
-                                <div className="form-row"><label>*고객사 ID</label><input type="number" value={newContact.companyId} onChange={(e) => setNewContact({ ...newContact, companyId: e.target.value })} /></div>
-                                <div className="form-row"><label>*고객사원 ID</label><input type="number" value={newContact.companyUserId} onChange={(e) => setNewContact({ ...newContact, companyUserId: e.target.value })} /></div>
+                                <div className="form-row"><label>*영업 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newContact.dealId} onChange={(e) => setNewContact({ ...newContact, dealId: e.target.value.replace(/\D/g, '') })} /></div>
+                                <div className="form-row"><label>*고객사 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newContact.companyId} onChange={(e) => setNewContact({ ...newContact, companyId: e.target.value.replace(/\D/g, '') })} /></div>
+                                <div className="form-row"><label>*고객사원 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newContact.companyUserId} onChange={(e) => setNewContact({ ...newContact, companyUserId: e.target.value.replace(/\D/g, '') })} /></div>
                                 <div className="form-row"><label>*담당자 ID</label><input type="text" value={newContact.userId} onChange={(e) => setNewContact({ ...newContact, userId: e.target.value })} /></div>
                                 <div className="form-row"><label>*컨택 유형</label>
                                     <select value={newContact.contactType} onChange={(e) => setNewContact({ ...newContact, contactType: e.target.value })}>
@@ -340,7 +347,7 @@ function ContactHistoryPage() {
                                 <div className="form-row"><label>*컨택 일자</label><input type="date" value={newContact.contactAt} onChange={(e) => setNewContact({ ...newContact, contactAt: e.target.value })} /></div>
                                 <div className="form-row">
                                     <label>*진행률(%)</label>
-                                    <input type="number" min={0} max={100} value={newContact.contactPercentage}
+                                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={newContact.contactPercentage}
                                         onChange={(e) => {
                                             const value = parseInt(e.target.value, 10);
                                             if (value >= 0 && value <= 100) {
@@ -351,7 +358,7 @@ function ContactHistoryPage() {
                                         }}
                                     />
                                 </div>
-                                <div className="form-row"><label>메모</label><input type="text" value={newContact.contactMemo} onChange={(e) => setNewContact({...newContact, contactMemo: e.target.value})} /></div>
+                                <div className="form-row"><label>메모</label><input type="text" placeholder="최대 30자" value={newContact.contactMemo} onChange={(e) => setNewContact({...newContact, contactMemo: e.target.value})} /></div>
                                 <div className="form-row">
                                     <button type="button" className="nav-button" onClick={() => {
                                         addContact({
@@ -461,7 +468,7 @@ function ContactHistoryPage() {
                         ) : editMode ? (
                             <div className="container">
                                 <form onSubmit={handleContactHistoryUpdate}>
-                                    <h3>컨택 이력 수정</h3>
+                                    <h3>컨택 이력 상세정보 수정</h3>
                                     <div className="form-row"><label>컨택 ID</label><span>{selectedContact.contactId}</span></div>
                                     <div className="form-row"><label>영업 ID</label><span>{contactHistoryDetail.dealId}</span></div>
                                     <div className="form-row"><label>고객사 ID</label><span>{contactHistoryDetail.companyId}</span></div>
@@ -485,7 +492,7 @@ function ContactHistoryPage() {
                                         </select>
                                     </div>
                                     <div className="form-row">
-                                        <label>진행률 (%)</label><input type="number" min={0} max={100}
+                                        <label>진행률 (%)</label><input type="text" inputMode="numeric" pattern="[0-9]*"
                                             value={contactHistoryDetail.contactPercentage}
                                             onChange={(e) => {
                                                 const value = parseInt(e.target.value, 10);
@@ -507,7 +514,7 @@ function ContactHistoryPage() {
                                     </div>
                                     <div className="form-row">
                                         <label>메모</label>
-                                        <input type="text" value={contactHistoryDetail.contactMemo} onChange={(e) => setContactHistoryDetail({ ...contactHistoryDetail, contactMemo: e.target.value })}/>
+                                        <input type="text" placeholder="최대 30자" value={contactHistoryDetail.contactMemo} onChange={(e) => setContactHistoryDetail({ ...contactHistoryDetail, contactMemo: e.target.value })}/>
                                     </div>
                                     <div className="form-row">
                                         <button type="submit" className="nav-button">저장</button>
@@ -523,7 +530,7 @@ function ContactHistoryPage() {
                             </div>
                         ) : (
                             <div className="container">
-                                <h3>컨택 이력 상세 정보</h3>
+                                <h3>컨택 이력 상세정보</h3>
                                 <div className="form-row"><label>컨택 ID</label><span>{selectedContact.contactId}</span></div>
                                 <div className="form-row"><label>영업 ID</label><span>{contactHistoryDetail.dealId}</span></div>
                                 <div className="form-row"><label>고객사 ID</label><span>{contactHistoryDetail.companyId}</span></div>
