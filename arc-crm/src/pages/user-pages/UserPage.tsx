@@ -38,10 +38,12 @@ function UserPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [sortState, setSortState] = useState<SortState[]>([]);
+    const [sortState, setSortState] = useState<SortState>({
+        key: 'userName',
+        order: 'asc',
+    });
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-
     const handleGoToSignUp = () => navigate('/signup');
     const handleGoToUserPage = () => navigate('/user');
     const handleGoToCompanyPage = () => navigate('/company');
@@ -53,42 +55,32 @@ function UserPage() {
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
-            const existing = prev.find((s) => s.key === key);
-            const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-
-            // 기존 key가 있으면 순서 유지, 정렬 방향만 변경
-            if (existing) {
-                return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
+            if (prev && prev.key === key) {
+                return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
             }
-
-            // 새로 추가된 정렬 기준은 뒤에 붙이기
-            return [...prev, { key, order: nextOrder }];
+            return { key, order: 'asc' };
         });
     };
 
     const getSortIcon = (key: SortKey) => {
-        const state = sortState.find((s) => s.key === key);
-        if (!state) return '';
-        return state.order === 'asc' ? ' ▲' : ' ▼';
+        if (!sortState || sortState.key !== key) return '';
+        return sortState.order === 'asc' ? ' ▲' : ' ▼';
     };
 
-    const multiSort = (list: User[]) => {
-        if (!Array.isArray(list)) return list;
+    const Sort = (list: User[]) => {
+        if (!sortState) return list;
 
+        const { key, order } = sortState;
         return [...list].sort((a, b) => {
-            for (const { key, order } of sortState) {
-                const aVal = a[key];
-                const bVal = b[key];
-
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    const diff = aVal - bVal;
-                    if (diff !== 0) return order === 'asc' ? diff : -diff;
-                } else {
-                    const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
-                    if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
-                }
+            const aVal = a[key];
+            const bVal = b[key];
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                const diff = aVal - bVal;
+                return order === 'asc' ? diff : -diff;
+            } else {
+                const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+                return order === 'asc' ? cmp : -cmp;
             }
-            return 0;
         });
     };
 
@@ -101,7 +93,7 @@ function UserPage() {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            if (!response.ok) throw new Error('유저 정보를 불러오지 못했습니다.');
+            if (!response.ok) throw new Error('유저 정보를 불러오는데 실패했습니다.');
             const data = await response.json();
             setUsers(data.content);
             setTotalPages(data.totalPages);
@@ -117,7 +109,7 @@ function UserPage() {
         fetchUsers().then(() => {});
     }, [page]);
 
-    const sorted = multiSort(users);
+    const sorted = Sort(users);
 
     return (
         <div className="page">
@@ -173,11 +165,11 @@ function UserPage() {
                                 &lt;
                             </button>
 
-                            {Array.from({ length: totalPages }, (_, i) => i).map((i) => {
+                            {Array.from({ length: totalPages }, (_, i) => {
                                 if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
                                     return (
                                         <button
-                                            key={i}
+                                            key={`page-${i}`}
                                             onClick={() => setPage(i)}
                                             className={`page-button ${page === i ? 'active' : ''}`}
                                         >
@@ -185,14 +177,16 @@ function UserPage() {
                                         </button>
                                     );
                                 }
+
                                 if (
                                     (i === 1 && page > 3) ||
                                     (i === totalPages - 2 && page < totalPages - 4) ||
                                     (Math.abs(i - page) === 2)
                                 ) {
-                                    return <span key={i} className="page-dots">...</span>;
+                                    return <span key={`dots-${i}`} className="page-dots">...</span>;
                                 }
-                                return null;
+
+                                return <React.Fragment key={`empty-${i}`} />;
                             })}
 
                             <button

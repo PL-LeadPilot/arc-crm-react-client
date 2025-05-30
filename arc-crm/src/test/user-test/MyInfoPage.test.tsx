@@ -57,7 +57,7 @@ describe('MyInfoPage', () => {
     test('수정 버튼 클릭 시 /user/me/edit으로 이동한다', async () => {
         render(<MyInfoPage />, { wrapper: MemoryRouter });
 
-        const button = await screen.findByRole('button', { name: '수정하기' });
+        const button = await screen.findByRole('button', { name: '수정' });
         fireEvent.click(button);
 
         expect(mockNavigate).toHaveBeenCalledWith('/user/me/edit');
@@ -70,7 +70,7 @@ describe('MyInfoPage', () => {
 
         render(<MyInfoPage />, { wrapper: MemoryRouter });
 
-        const 탈퇴 = await screen.findByText('탈퇴하기');
+        const 탈퇴 = await screen.findByText('탈퇴');
         fireEvent.click(탈퇴);
 
         await waitFor(() => {
@@ -112,7 +112,7 @@ describe('MyInfoPage', () => {
 
         render(<MyInfoPage />, { wrapper: MemoryRouter });
 
-        fireEvent.click(await screen.findByText('탈퇴하기'));
+        fireEvent.click(await screen.findByText('탈퇴'));
 
         await waitFor(() => {
             expect(window.alert).toHaveBeenCalledWith('비밀번호가 일치하지 않거나 탈퇴에 실패했습니다.');

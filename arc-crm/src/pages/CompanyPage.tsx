@@ -39,7 +39,10 @@ type SortState = {
 function CompanyPage() {
     const navigate = useNavigate();
     const [companies, setCompanies] = useState<Company[]>([]);
-    const [sortState, setSortState] = useState<SortState[]>([]);
+    const [sortState, setSortState] = useState<SortState>({
+        key: 'companyName',
+        order: 'asc',
+    });
     const [searchCompanyName, setSearchCompanyName] = useState('');
     const [searchMode, setSearchMode] = useState(false); // 검색 중 여부
     const [error, setError] = useState<string | null>(null);
@@ -51,6 +54,7 @@ function CompanyPage() {
     const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
     const [detailLoading, setDetailLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const [showAddForm, setShowAddForm] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -67,42 +71,32 @@ function CompanyPage() {
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
-            const existing = prev.find((s) => s.key === key);
-            const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-
-            // 기존 key가 있으면 순서 유지, 정렬 방향만 변경
-            if (existing) {
-                return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
+            if (prev && prev.key === key) {
+                return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
             }
-
-            // 새로 추가된 정렬 기준은 뒤에 붙이기
-            return [...prev, { key, order: nextOrder }];
+            return { key, order: 'asc' };
         });
     };
 
     const getSortIcon = (key: SortKey) => {
-        const state = sortState.find((s) => s.key === key);
-        if (!state) return '';
-        return state.order === 'asc' ? ' ▲' : ' ▼';
+        if (!sortState || sortState.key !== key) return '';
+        return sortState.order === 'asc' ? ' ▲' : ' ▼';
     };
 
-    const multiSort = (list: Company[]) => {
-        if (!Array.isArray(list) || sortState.length === 0) return list;
+    const Sort = (list: Company[]) => {
+        if (!sortState) return list;
 
+        const { key, order } = sortState;
         return [...list].sort((a, b) => {
-            for (const { key, order } of sortState) {
-                const aVal = a[key];
-                const bVal = b[key];
-
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    const diff = aVal - bVal;
-                    if (diff !== 0) return order === 'asc' ? diff : -diff;
-                } else {
-                    const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
-                    if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
-                }
+            const aVal = a[key];
+            const bVal = b[key];
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                const diff = aVal - bVal;
+                return order === 'asc' ? diff : -diff;
+            } else {
+                const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+                return order === 'asc' ? cmp : -cmp;
             }
-            return 0;
         });
     };
 
@@ -113,7 +107,7 @@ function CompanyPage() {
             const response = await fetch(`/company?page=${page}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (!response.ok) throw new Error('고객사 정보를 불러오지 못했습니다.');
+            if (!response.ok) throw new Error('고객사 정보를 불러오는데 실패했습니다.');
             const data = await response.json();
             setCompanies(data.content);
             setTotalPages(data.totalPages);
@@ -130,28 +124,18 @@ function CompanyPage() {
         setError(null);
         try {
             const token = localStorage.getItem('token');
-            const [detailRes, userRes] = await Promise.all([
-                fetch('/company/companyDetails', {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ companyId }),
-                }),
-                fetch('/companyUser/byCompany', {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ companyId }),
-                })
-            ]);
-            const detailData = await detailRes.json();
-            const userData = await userRes.json();
-            setCompanyDetail(detailData);
-            setCompanyUsers(userData);
+            const response = await fetch('/company/companyDetails', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({companyId})
+            });
+            if (!response.ok) throw new Error('상세 정보를 불러오는데 실패했습니다.');
+            const data = await response.json();
+            setCompanyDetail(data);
+            await fetchCompanyUsersByCompany(companyId);
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -213,7 +197,9 @@ function CompanyPage() {
 
             if (!response.ok) throw new Error('고객사 등록에 실패했습니다.');
 
+            alert('고객사 등록에 성공했습니다.');
             await fetchCompanies();
+            setShowAddForm(false);
             setNewCompany(initialCompanyState);
             setError(null);
         } catch (err) {
@@ -232,8 +218,8 @@ function CompanyPage() {
             const response = await fetch('/company', {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     companyId: companyDetail.companyId,
@@ -243,7 +229,7 @@ function CompanyPage() {
                 }),
             });
 
-            if (!response.ok) throw new Error('고객사 수정 실패');
+            if (!response.ok) throw new Error('고객사 수정에 실패했습니다.');
 
             await fetchCompanies();
             await fetchCompanyDetails(companyDetail.companyId);
@@ -264,8 +250,8 @@ function CompanyPage() {
             const response = await fetch('/company', {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     companyId: companyDetail.companyId,
@@ -283,9 +269,33 @@ function CompanyPage() {
             setEditMode(false);
             await fetchCompanies();
         } catch (err) {
-            alert(`삭제 실패: ${(err as Error).message}`);
+            alert((err as Error).message);
+        } finally {
+            setLoading(false);
         }
     };
+
+    const fetchCompanyUsersByCompany = async (companyId: number) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/companyUser/byCompany', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ companyId }),
+            });
+            if (!response.ok) throw new Error('고객사 사원 조회 실패');
+            const data = await response.json();
+            setCompanyUsers(data);
+            setError(null);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
         if (searchMode) {
@@ -300,7 +310,7 @@ function CompanyPage() {
         if (allEmpty) setSearchMode(false);
     }, [searchCompanyName]);
 
-    const sorted = multiSort(companies);
+    const sorted = Sort(companies);
 
     return (
         <div className="page">
@@ -309,31 +319,25 @@ function CompanyPage() {
             {/* Search + Add */}
             <div className="content">
                 <div className="content-box">
-                    <input type="text" placeholder="고객사명 검색" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
-                    <button onClick={() => { setPage(0); searchCompanies(); }} > 검색하기 </button>
+                    <input type="text" placeholder="고객사명" value={searchCompanyName} onChange={(e) => setSearchCompanyName(e.target.value)} />
+                    <button type="button" onClick={() => { setPage(0); searchCompanies(); }} > 검색 </button>
+                    <button type="button" onClick={() => setShowAddForm(true)}>고객사 등록</button>
                 </div>
 
-                <div className="content-box">
-                    <input
-                        type="text"
-                        placeholder="*고객사명"
-                        value={newCompany.companyName}
-                        onChange={(e) => setNewCompany({ ...newCompany, companyName: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="*고객사 주소"
-                        value={newCompany.companyAddress}
-                        onChange={(e) => setNewCompany({ ...newCompany, companyAddress: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="*담당자 ID"
-                        value={newCompany.userId}
-                        onChange={(e) => setNewCompany({ ...newCompany, userId: e.target.value })}
-                    />
-                    <button onClick={() => addCompany(newCompany)} >고객사 추가</button>
-                </div>
+                {showAddForm && (
+                    <div className="overlay">
+                        <div className="container">
+                            <h3>고객사 등록</h3>
+                            <div className="form-row"><label>*고객사명</label><input type="text" value={newCompany.companyName} onChange={(e) => setNewCompany({ ...newCompany, companyName: e.target.value })}/></div>
+                            <div className="form-row"><label>고객사 주소</label><input type="text" value={newCompany.companyAddress} onChange={(e) => setNewCompany({ ...newCompany, companyAddress: e.target.value })}/></div>
+                            <div className="form-row"><label>*담당자 ID</label><input type="text" value={newCompany.userId} onChange={(e) => setNewCompany({ ...newCompany, userId: e.target.value })}/></div>
+                            <div className="form-row">
+                                <button type="button" className="nav-button" onClick={() => addCompany(newCompany)}>등록</button>
+                                <button type="button" className="nav-button" onClick={() => {setShowAddForm(false); setNewCompany(initialCompanyState); }}>취소</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Table */}
                 {loading && <p>로딩 중...</p>}
@@ -350,134 +354,148 @@ function CompanyPage() {
                             </tr>
                             </thead>
                             <tbody>
-                            {sorted.map((c) => (
-                                <tr key={c.companyId}>
-                                    <td>{c.companyId}</td>
-                                    <td className="clicktable" onClick={() => { setSelectedCompany(c); fetchCompanyDetails(c.companyId); }}>{c.companyName}</td>
-                                    <td>{c.companyAddress}</td>
-                                    <td>{c.userName}</td>
+                            {sorted.map((company) => (
+                                <tr
+                                    key={company.companyId}
+                                    className={`open-slide-panel ${selectedCompany?.companyId === company.companyId ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setSelectedCompany(company);
+                                        fetchCompanyDetails(company.companyId);
+                                    }}
+                                >
+                                    <td>{company.companyId}</td>
+                                    <td>{company.companyName}</td>
+                                    <td>{company.companyAddress}</td>
+                                    <td>{company.userName}</td>
                                 </tr>
                             ))}
                             </tbody>
                         </table>
-                    </>
-                )}
-            </div>
 
-            {/* Pagination */}
-            <div className="pagination">
-                <button
-                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-                    disabled={page === 0}
-                    className="page-button"
-                >
-                    &lt;
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i).map((i) => {
-                    if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
-                        return (
+                        {/* Pagination */}
+                        <div className="pagination">
                             <button
-                                key={i}
-                                onClick={() => setPage(i)}
-                                className={`page-button ${page === i ? 'active' : ''}`}
+                                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                                disabled={page === 0}
+                                className="page-button"
                             >
-                                {i + 1}
+                                &lt;
                             </button>
-                        );
-                    }
-                    if (
-                        (i === 1 && page > 3) ||
-                        (i === totalPages - 2 && page < totalPages - 4) ||
-                        (Math.abs(i - page) === 2)
-                    ) {
-                        return <span key={i} className="page-dots">...</span>;
-                    }
-                    return null;
-                })}
 
-                <button
-                    onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
-                    disabled={page === totalPages - 1}
-                    className="page-button"
-                >
-                    &gt;
-                </button>
-            </div>
+                            {Array.from({ length: totalPages }, (_, i) => {
+                                if (i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
+                                    return (
+                                        <button
+                                            key={`page-${i}`}
+                                            onClick={() => setPage(i)}
+                                            className={`page-button ${page === i ? 'active' : ''}`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    );
+                                }
 
-            {/* Slide Panel */}
-            {selectedCompany && companyDetail && (
-                <>
-                    <div className="slide-overlay" onClick={() => { setSelectedCompany(null); setEditMode(false); }}></div>
-                    <div className="slide-panel open">
-                        <button className="slide-close-button" onClick={() => { setSelectedCompany(null); setEditMode(false); }}>×</button>
-                        {detailLoading ? (
-                            <p>로딩 중...</p>
-                        ) : editMode ? (
-                            <div className="container">
-                                <form onSubmit={handleCompanyUpdate}>
-                                    <h2>고객사 정보 수정</h2>
-                                    <div className="form-row">
-                                        <label>*고객사명</label>
-                                        <input type="text" value={companyDetail.companyName} onChange={(e) => setCompanyDetail({ ...companyDetail, companyName: e.target.value })} />
-                                    </div>
-                                    <div className="form-row">
-                                        <label>고객사 주소</label>
-                                        <input type="text" value={companyDetail.companyAddress} onChange={(e) => setCompanyDetail({ ...companyDetail, companyAddress: e.target.value })} />
-                                    </div>
-                                    <div className="form-row">
-                                        <label>*유저 ID</label>
-                                        <input type="text" value={companyDetail.userId} onChange={(e) => setCompanyDetail({ ...companyDetail, userId: e.target.value })} />
-                                    </div>
-                                    <button type="submit">저장</button>
-                                </form>
-                            </div>
-                        ) : (
-                            <div className="container">
-                                <h3>고객사 상세 정보</h3>
-                                <div className="form-row"><label>고객사명</label><span>{companyDetail.companyName}</span></div>
-                                <div className="form-row"><label>고객사 주소</label><span>{companyDetail.companyAddress}</span></div>
-                                <div className="form-row"><label>담당자</label><span>{companyDetail.userName}</span></div>
-                                <div className="form-row"><label>수정일</label><span>{new Date(companyDetail.updatedAt).toLocaleString()}</span></div>
-                                <button className="nav-button" onClick={() => setEditMode(true)}>고객사 정보 수정하기</button>
-                                <div className="container-delete">
-                                    <span onClick={handleDelete} >고객사 정보 삭제하기</span>
-                                </div>
-                                <div className="container-contain">
-                                    {companyUsers.length === 0 ? (
-                                        <p>등록된 사원이 없습니다.</p>
+                                if (
+                                    (i === 1 && page > 3) ||
+                                    (i === totalPages - 2 && page < totalPages - 4) ||
+                                    (Math.abs(i - page) === 2)
+                                ) {
+                                    return <span key={`dots-${i}`} className="page-dots">...</span>;
+                                }
+
+                                return <React.Fragment key={`empty-${i}`} />;
+                            })}
+
+                            <button
+                                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+                                disabled={page === totalPages - 1}
+                                className="page-button"
+                            >
+                                &gt;
+                            </button>
+                        </div>
+
+                        {/* Slide Panel */}
+                        {selectedCompany && companyDetail && (
+                            <>
+                                <div className="slide-overlay" onClick={() => { setSelectedCompany(null); setEditMode(false); }}></div>
+                                <div className="slide-panel open">
+                                    <button className="slide-close-button" onClick={() => { setSelectedCompany(null); setEditMode(false); }}>×</button>
+                                    {detailLoading ? (
+                                        <p>로딩 중...</p>
+                                    ) : editMode ? (
+                                        <div className="container">
+                                            <form onSubmit={handleCompanyUpdate}>
+                                                <h3>고객사 정보 수정</h3>
+                                                <div className="form-row"><label>고객사 ID</label><span>{selectedCompany!.companyId}</span></div>
+                                                <div className="form-row"><label>*고객사명</label><input type="text" value={companyDetail.companyName} onChange={(e) => setCompanyDetail({ ...companyDetail, companyName: e.target.value })} /></div>
+                                                <div className="form-row"><label>고객사 주소</label><input type="text" value={companyDetail.companyAddress} onChange={(e) => setCompanyDetail({ ...companyDetail, companyAddress: e.target.value })} /></div>
+                                                <div className="form-row"><label>*유저 ID</label><input type="text" value={companyDetail.userId} onChange={(e) => setCompanyDetail({ ...companyDetail, userId: e.target.value })} /></div>
+                                                <div className="form-row">
+                                                    <button type="submit" className="nav-button">저장</button>
+                                                    <button
+                                                        type="button"
+                                                        className="nav-button"
+                                                        onClick={() => {
+                                                            setEditMode(false);
+                                                            setCompanyDetail(null);
+                                                        }}
+                                                    >취소
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
                                     ) : (
-                                        <div className="history">
-                                            <table className="table">
-                                                <thead className="header">
-                                                <tr>
-                                                    <th>이름</th>
-                                                    <th>전화번호</th>
-                                                    <th>이메일</th>
-                                                    <th>직급</th>
-                                                    <th>부서</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {companyUsers.map((user) => (
-                                                    <tr key={user.companyUserId}>
-                                                        <td>{user.companyUserName}</td>
-                                                        <td>{user.companyUserPhone}</td>
-                                                        <td>{user.companyUserEmail}</td>
-                                                        <td>{user.companyUserPosition}</td>
-                                                        <td>{user.companyUserDivision}</td>
-                                                    </tr>
-                                                ))}
-                                                </tbody>
-                                            </table>
+                                        <div className="container">
+                                            <h3>고객사 상세 정보</h3>
+                                            <div className="form-row"><label>고객사 ID</label><span>{selectedCompany!.companyId}</span></div>
+                                            <div className="form-row"><label>고객사명</label><span>{companyDetail.companyName}</span></div>
+                                            <div className="form-row"><label>고객사 주소</label><span>{companyDetail.companyAddress}</span></div>
+                                            <div className="form-row"><label>담당자</label><span>{companyDetail.userName}</span></div>
+                                            <div className="form-row"><label>수정일</label><span>{new Date(companyDetail.updatedAt).toLocaleString()}</span></div>
+                                            <button type="button" className="nav-button" onClick={() => setEditMode(true)}>수정</button>
+                                            <div className="container-delete">
+                                                <span onClick={handleDelete} >고객사 정보 삭제</span>
+                                            </div>
+                                            <div className="container-contain">
+                                                {companyUsers.length === 0 ? (
+                                                    <p>등록된 사원이 없습니다.</p>
+                                                ) : (
+                                                    <div className="history">
+                                                        <table className="table">
+                                                            <thead className="header">
+                                                            <tr>
+                                                                <th>이름</th>
+                                                                <th>전화번호</th>
+                                                                <th>이메일</th>
+                                                                <th>직급</th>
+                                                                <th>부서</th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            {companyUsers.map((companyUser) => (
+                                                                <tr key={companyUser.companyUserEmail}>
+                                                                    <td>{companyUser.companyUserName}</td>
+                                                                    <td>{companyUser.companyUserPhone}</td>
+                                                                    <td>{companyUser.companyUserEmail}</td>
+                                                                    <td>{companyUser.companyUserPosition}</td>
+                                                                    <td>{companyUser.companyUserDivision}</td>
+                                                                </tr>
+                                                            ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </>
                         )}
-                    </div>
-                </>
-            )}
+                    </>
+                )}
+            </div>
         </div>
     );
 }

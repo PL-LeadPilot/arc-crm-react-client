@@ -12,9 +12,12 @@
     font-size: 1rem;
 }
 
-.clicktable {
+.table th {
     cursor: pointer;
-    color: blue;
+}
+
+.table tr.active {
+    background-color: #eee;
 }
 
 .table th button {
@@ -23,4 +26,13 @@
     font-weight: bold;
     cursor: pointer;
     padding: 0;
+}
+
+.open-slide-panel {
+    cursor: pointer;
+    pointer-events: bounding-box;
+}
+
+.open-slide-panel:hover {
+    background-color: #eee;
 }

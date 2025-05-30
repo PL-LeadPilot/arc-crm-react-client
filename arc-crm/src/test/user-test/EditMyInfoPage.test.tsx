@@ -58,7 +58,7 @@ describe('EditMyInfoPage', () => {
         fireEvent.change(screen.getByLabelText('새 비밀번호 (선택)'), {
             target: { value: 'newPass123' },
         });
-        fireEvent.click(screen.getByRole('button', { name: '수정 완료' }));
+        fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
         await waitFor(() => {
             expect(mockNavigate).toHaveBeenCalledWith('/user/me');
@@ -67,7 +67,7 @@ describe('EditMyInfoPage', () => {
 
     it('현재 비밀번호 없이 제출 시 에러 메시지 표시', async () => {
         render(<EditMyInfoPage />, { wrapper: MemoryRouter });
-        fireEvent.click(await screen.findByRole('button', { name: '수정 완료' }));
+        fireEvent.click(await screen.findByRole('button', { name: '저장' }));
 
         await waitFor(() => {
             expect(screen.getByText('현재 비밀번호는 필수입니다.')).toBeInTheDocument();
@@ -84,7 +84,7 @@ describe('EditMyInfoPage', () => {
         fireEvent.change(screen.getByLabelText('*현재 비밀번호'), {
             target: { value: 'pass123' },
         });
-        fireEvent.click(screen.getByRole('button', { name: '수정 완료' }));
+        fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
         await waitFor(() => {
             expect(screen.getByText('전화번호 형식은 010-0000-0000입니다.')).toBeInTheDocument();

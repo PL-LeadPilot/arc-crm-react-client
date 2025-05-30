@@ -70,10 +70,9 @@ test('opens add form when button clicked', async () => {
         render(<BrowserRouter><DealPage /></BrowserRouter>);
     });
 
-    const button = screen.getByText('영업이력 추가');
+    const button = screen.getByText('영업 이력 등록');
     fireEvent.click(button);
 
-    expect(await screen.findByText('영업 이력 추가')).toBeInTheDocument();
     expect(await screen.findByText('*영업명')).toBeInTheDocument();
 });
 

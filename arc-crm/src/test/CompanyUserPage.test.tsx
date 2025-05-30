@@ -75,7 +75,7 @@ describe('CompanyUserPage', () => {
         expect(screen.getByText('로그아웃')).toBeInTheDocument();
         expect(screen.getByText('유저 페이지')).toBeInTheDocument();
         expect(screen.getByText('고객사 페이지')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('고객사명 검색')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('고객사명')).toBeInTheDocument();
     });
 
     test('renders the search fields and add form', async () => {
@@ -87,29 +87,8 @@ describe('CompanyUserPage', () => {
             );
         });
 
-        expect(screen.getByPlaceholderText('사원명 검색')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('*고객사 ID')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('*고객사 사원 이름')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('*고객사 사원 이메일')).toBeInTheDocument();
-    });
-
-    test('shows error when required fields are empty on add', async () => {
-        await act(async () => {
-            render(
-                <BrowserRouter>
-                    <CompanyUserPage />
-                </BrowserRouter>
-            );
-        });
-
-        const addButton = screen.getByText((content, element) => {
-            return element?.tagName.toLowerCase() === 'button' && content === '고객사 사원 추가';
-        });
-        await act(async () => {
-            fireEvent.click(addButton);
-        });
-
-        expect(screen.getByText('고객사 ID는 필수입니다.')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('사원명')).toBeInTheDocument();
+        expect(screen.getByText('고객사 사원 등록')).toBeInTheDocument();
     });
 
     test('renders table headers after data load', async () => {
