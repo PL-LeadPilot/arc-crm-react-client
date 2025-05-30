@@ -63,43 +63,24 @@ function SignUpPage() {
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        const newErrors: Record<string, string> = {};
+        const errors: Record<string, string> = {};
 
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(userId)) {
-            newErrors.userId = '아이디는 3~20자 영문 또는 숫자여야 합니다.';
-        }
-
+        if (!/^[a-zA-Z0-9]{3,20}$/.test(userId)) { errors.userId = '3~20자 (영문 or 숫자)'; }
         if (
             userPassword.length < 7 ||
             userPassword.length > 20 ||
             !/[a-zA-Z]/.test(userPassword) ||
             !/[0-9]/.test(userPassword)
         ) {
-            newErrors.userPassword = '비밀번호는 영문과 숫자를 포함한 7~20자여야 합니다.';
+            errors.userPassword = '7~20자 (영문 + 숫자)';
         }
-
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
-            newErrors.userEmail = '유효한 이메일 주소를 입력하세요.';
-        }
-
-        if (userName.trim().length < 2) {
-            newErrors.userName = '이름은 2자 이상 입력하세요.';
-        }
-
-        if (!/^010-\d{4}-\d{4}$/.test(userPhone)) {
-            newErrors.userPhone = '전화번호 형식은 010-0000-0000입니다.';
-        }
-
-        if (!userPosition.trim()) {
-            newErrors.userPosition = '직책을 입력하세요.';
-        }
-
-        if (!userDivision.trim()) {
-            newErrors.userDivision = '부서를 입력하세요.';
-        }
-
-        if (Object.keys(newErrors).length > 0) {
-            setFieldErrors(newErrors);
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) { errors.userEmail = '이메일 형식: exam@example.com'; }
+        if (userName.trim().length < 2 && userName.trim().length > 20) { errors.userName = '2~20자 문자'; }
+        if (!/^010-\d{4}-\d{4}$/.test(userPhone)) { errors.userPhone = '전화번호 형식: 010-0000-0000'; }
+        if (userDivision.trim().length < 1 && userDivision.trim().length > 31) { errors.userDivision = '최대 30자 문자'; }
+        if (userPosition.trim().length < 1 && userPosition.trim().length > 31) { errors.userPosition = '최대 30자 문자'; }
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
             return;
         }
 
@@ -132,7 +113,7 @@ function SignUpPage() {
                 navigate('/company');
             }
         } catch {
-            setError('서버 오류가 발생했습니다.');
+            setError('서버 오류 발생');
         }
     };
 
@@ -151,15 +132,14 @@ function SignUpPage() {
             </nav>
             <div className="container">
                 <h2>회원가입</h2>
-                <h4>*은 필수입니다.</h4>
+                <h4>*은 필수</h4>
                 <form onSubmit={handleSignUp}>
                     {fieldErrors.userId && <p className="error">{fieldErrors.userId}</p>}
                     <div className="form-row">
                         <label htmlFor="userId">*아이디</label>
                         <input
-                            id="userId"
                             type="text"
-                            placeholder="3자 이상 20자 이하 영문/숫자"
+                            placeholder="3~20자 (영문 or 숫자)"
                             value={userId}
                             onChange={(e) => setUserId(e.target.value)}
                             required
@@ -170,9 +150,8 @@ function SignUpPage() {
                     <div className="form-row">
                         <label htmlFor="userPassword">*비밀번호</label>
                         <input
-                            id="userPassword"
                             type="password"
-                            placeholder="7자 이상 20자 이하 영문/숫자"
+                            placeholder="7~20자 (영문+숫자)"
                             value={userPassword}
                             onChange={(e) => setUserPassword(e.target.value)}
                             required
@@ -183,9 +162,8 @@ function SignUpPage() {
                     <div className="form-row">
                         <label htmlFor="userEmail">*이메일</label>
                         <input
-                            id="userEmail"
                             type="email"
-                            placeholder="test@test.com"
+                            placeholder="exam@example.com"
                             value={userEmail}
                             onChange={(e) => setUserEmail(e.target.value)}
                             required
@@ -196,9 +174,8 @@ function SignUpPage() {
                     <div className="form-row">
                         <label htmlFor="userName">*이름</label>
                         <input
-                            id="userName"
                             type="text"
-                            placeholder="2자 이상 10자 이하"
+                            placeholder="2~20자 문자"
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
                             required
@@ -209,7 +186,6 @@ function SignUpPage() {
                     <div className="form-row">
                         <label htmlFor="userPhone">*전화번호</label>
                         <input
-                            id="userPhone"
                             type="text"
                             placeholder="*010-0000-0000"
                             value={userPhone}
@@ -220,14 +196,12 @@ function SignUpPage() {
 
                     {fieldErrors.userPosition && <p className="error">{fieldErrors.userPosition}</p>}
                     <div className="form-row">
-                        <label htmlFor="userPosition">*직책</label>
+                        <label htmlFor="userPosition">직책</label>
                         <input
-                            id="userPosition"
                             type="text"
-                            placeholder="*직책"
+                            placeholder="최대 30자"
                             value={userPosition}
                             onChange={(e) => setUserPosition(e.target.value)}
-                            required
                         />
                     </div>
 
@@ -235,15 +209,13 @@ function SignUpPage() {
                     <div className="form-row">
                         <label htmlFor="userDivision">*부서</label>
                         <input
-                            id="userDivision"
                             type="text"
-                            placeholder="*부서"
+                            placeholder="최대 30자"
                             value={userDivision}
                             onChange={(e) => setUserDivision(e.target.value)}
                             required
                         />
                     </div>
-
 
                     <div className="form-row">
                         <label htmlFor="userRole">*권한</label>

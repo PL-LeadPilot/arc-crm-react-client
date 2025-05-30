@@ -50,34 +50,16 @@ function EditMyInfoPage() {
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        const newErrors: Record<string, string> = {};
+        const errors: Record<string, string> = {};
 
-        if (!userCurrentPassword) {
-            newErrors.userCurrentPassword = '현재 비밀번호는 필수입니다.';
-        }
-
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
-            newErrors.userEmail = '유효한 이메일 주소를 입력하세요.';
-        }
-
-        if (!/^010-\d{4}-\d{4}$/.test(userPhone)) {
-            newErrors.userPhone = '전화번호 형식은 010-0000-0000입니다.';
-        }
-
-        if (!userName.trim()) {
-            newErrors.userName = '이름을 입력하세요.';
-        }
-
-        if (!userPosition.trim()) {
-            newErrors.userPosition = '직책을 입력하세요.';
-        }
-
-        if (!userDivision.trim()) {
-            newErrors.userDivision = '부서를 입력하세요.';
-        }
-
-        if (Object.keys(newErrors).length > 0) {
-            setFieldErrors(newErrors);
+        if (!userCurrentPassword) { errors.userCurrentPassword = '현재 비밀번호는 필수';}
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) { errors.userEmail = '이메일 형식: exam@example.com'; }
+        if (userName.trim().length < 2 && userName.trim().length > 20) { errors.userName = '2~20자 문자'; }
+        if (!/^010-\d{4}-\d{4}$/.test(userPhone)) { errors.userPhone = '전화번호 형식: 010-0000-0000'; }
+        if (userDivision.trim().length < 1 && userDivision.trim().length > 31) { errors.userDivision = '최대 30자 문자'; }
+        if (userPosition.trim().length < 1 && userPosition.trim().length > 31) { errors.userPosition = '최대 30자 문자'; }
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
             return;
         }
 
@@ -108,7 +90,7 @@ function EditMyInfoPage() {
                 navigate('/user/me');
             }
         } catch {
-            setError('서버 오류가 발생했습니다.');
+            setError('서버 오류 발생');
         }
     };
 
@@ -124,13 +106,12 @@ function EditMyInfoPage() {
                 </div>
             </nav>
             <div className="container">
-                <h3>내 정보 수정</h3>
+                <h3>유저 상세정보 수정</h3>
                 <form onSubmit={handleUpdate}>
                     {fieldErrors.userCurrentPassword && <p className="error">{fieldErrors.userCurrentPassword}</p>}
                     <div className="form-row">
                         <label htmlFor="userCurrentPassword">*현재 비밀번호</label>
                         <input
-                            id="userCurrentPassword"
                             type="password"
                             placeholder="입력하셔야 수정됩니다."
                             value={userCurrentPassword}
@@ -142,9 +123,8 @@ function EditMyInfoPage() {
                     <div className="form-row">
                         <label htmlFor="userNewPassword">새 비밀번호 (선택)</label>
                         <input
-                            id="userNewPassword"
                             type="password"
-                            placeholder="7자 이상 20자 이하 영문/숫자"
+                            placeholder="7~20자 (영문+숫자)"
                             value={userNewPassword}
                             onChange={(e) => setUserNewPassword(e.target.value)}
                         />
@@ -152,11 +132,10 @@ function EditMyInfoPage() {
 
                     {fieldErrors.userEmail && <p className="error">{fieldErrors.userEmail}</p>}
                     <div className="form-row">
-                        <label htmlFor="userEmail">이메일</label>
+                        <label htmlFor="userEmail">*이메일</label>
                         <input
-                            id="userEmail"
                             type="email"
-                            placeholder="test@test.com"
+                            placeholder="exam@example.com"
                             value={userEmail}
                             onChange={(e) => setUserEmail(e.target.value)}
                             required
@@ -165,11 +144,10 @@ function EditMyInfoPage() {
 
                     {fieldErrors.userName && <p className="error">{fieldErrors.userName}</p>}
                     <div className="form-row">
-                        <label htmlFor="userName">이름</label>
+                        <label htmlFor="userName">*이름</label>
                         <input
-                            id="userName"
                             type="text"
-                            placeholder="2자 이상 10자 이하"
+                            placeholder="2~20자 문자"
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
                             required
@@ -178,9 +156,8 @@ function EditMyInfoPage() {
 
                     {fieldErrors.userPhone && <p className="error">{fieldErrors.userPhone}</p>}
                     <div className="form-row">
-                        <label htmlFor="userPhone">전화번호</label>
+                        <label htmlFor="userPhone">*전화번호</label>
                         <input
-                            id="userPhone"
                             type="text"
                             placeholder="*010-0000-0000"
                             value={userPhone}
@@ -193,20 +170,19 @@ function EditMyInfoPage() {
                     <div className="form-row">
                         <label htmlFor="userPosition">직책</label>
                         <input
-                            id="userPosition"
                             type="text"
+                            placeholder="최대 30자"
                             value={userPosition}
                             onChange={(e) => setUserPosition(e.target.value)}
-                            required
                         />
                     </div>
 
                     {fieldErrors.userDivision && <p className="error">{fieldErrors.userDivision}</p>}
                     <div className="form-row">
-                        <label htmlFor="userDivision">부서</label>
+                        <label htmlFor="userDivision">*부서</label>
                         <input
-                            id="userDivision"
                             type="text"
+                            placeholder="최대 30자"
                             value={userDivision}
                             onChange={(e) => setUserDivision(e.target.value)}
                             required
