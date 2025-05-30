@@ -144,7 +144,7 @@ function UserPage() {
                             </thead>
                             <tbody>
                             {sorted.map((user) => (
-                                <tr key={user.userName}>
+                                <tr key={user.userEmail}>
                                     <td>{user.userName}</td>
                                     <td>{user.userEmail}</td>
                                     <td>{user.userPhone}</td>
