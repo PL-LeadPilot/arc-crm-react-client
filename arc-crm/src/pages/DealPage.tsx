@@ -438,21 +438,22 @@ function DealPage() {
                             </tr>
                             </thead>
                             <tbody>
-                            {sorted.map((d) => (
-                                <tr key={d.dealId} className="open-slide-panel"
+                            {sorted.map((deal) => (
+                                <tr key={deal.dealId}
+                                    className={`open-slide-panel ${selectedDeal?.dealId === deal.dealId ? 'active' : ''}`}
                                     onClick={() => {
-                                        setSelectedDeal(d);
-                                        fetchDealDetails(d.dealId);
-                                        fetchContactByDeal(d.dealId);
+                                        setSelectedDeal(deal);
+                                        fetchDealDetails(deal.dealId);
+                                        fetchContactByDeal(deal.dealId);
                                     }}>
-                                    <td>{d.dealId}</td>
-                                    <td>{d.dealName}</td>
-                                    <td>{d.companyId}</td>
-                                    <td>{d.companyUserId}</td>
-                                    <td>{d.userName}</td>
-                                    <td>{d.sourceType}</td>
-                                    <td>{d.statusType}</td>
-                                    <td>{new Date(d.dealAt).toLocaleDateString()}</td>
+                                    <td>{deal.dealId}</td>
+                                    <td>{deal.dealName}</td>
+                                    <td>{deal.companyId}</td>
+                                    <td>{deal.companyUserId}</td>
+                                    <td>{deal.userName}</td>
+                                    <td>{deal.sourceType}</td>
+                                    <td>{deal.statusType}</td>
+                                    <td>{new Date(deal.dealAt).toLocaleDateString()}</td>
                                 </tr>
                             ))}
                             </tbody>

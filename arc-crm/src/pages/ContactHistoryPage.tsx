@@ -383,19 +383,20 @@ function ContactHistoryPage() {
                         </tr>
                         </thead>
                         <tbody>
-                        {sorted.map((c) => (
-                            <tr key={c.contactId} className="open-slide-panel"
+                        {sorted.map((contact) => (
+                            <tr key={contact.contactId}
+                                className={`open-slide-panel ${selectedContact?.contactId === contact.contactId ? 'active' : ''}`}
                                 onClick={() => {
-                                    setSelectedContact(c);
-                                    fetchContactHistoryDetails(c.contactId);
+                                    setSelectedContact(contact);
+                                    fetchContactHistoryDetails(contact.contactId);
                                 }}
                             >
-                                <td>{c.contactId}</td>
-                                <td>{c.userName}</td>
-                                <td>{c.contactType}</td>
-                                <td>{c.contactResult}</td>
-                                <td>{c.contactPercentage}</td>
-                                <td>{new Date(c.contactAt).toLocaleDateString()}</td>
+                                <td>{contact.contactId}</td>
+                                <td>{contact.userName}</td>
+                                <td>{contact.contactType}</td>
+                                <td>{contact.contactResult}</td>
+                                <td>{contact.contactPercentage}</td>
+                                <td>{new Date(contact.contactAt).toLocaleDateString()}</td>
                             </tr>
                         ))}
                         </tbody>

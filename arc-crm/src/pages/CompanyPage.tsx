@@ -361,16 +361,19 @@ function CompanyPage() {
                             </tr>
                             </thead>
                             <tbody>
-                            {sorted.map((c) => (
-                                <tr key={c.companyId} className="open-slide-panel"
+                            {sorted.map((company) => (
+                                <tr
+                                    key={company.companyId}
+                                    className={`open-slide-panel ${selectedCompany?.companyId === company.companyId ? 'active' : ''}`}
                                     onClick={() => {
-                                        setSelectedCompany(c);
-                                        fetchCompanyDetails(c.companyId);
-                                    }}>
-                                    <td>{c.companyId}</td>
-                                    <td>{c.companyName}</td>
-                                    <td>{c.companyAddress}</td>
-                                    <td>{c.userName}</td>
+                                        setSelectedCompany(company);
+                                        fetchCompanyDetails(company.companyId);
+                                    }}
+                                >
+                                    <td>{company.companyId}</td>
+                                    <td>{company.companyName}</td>
+                                    <td>{company.companyAddress}</td>
+                                    <td>{company.userName}</td>
                                 </tr>
                             ))}
                             </tbody>
@@ -477,13 +480,13 @@ function CompanyPage() {
                                                             </tr>
                                                             </thead>
                                                             <tbody>
-                                                            {companyUsers.map((c) => (
-                                                                <tr key={c.companyUserEmail}>
-                                                                    <td>{c.companyUserName}</td>
-                                                                    <td>{c.companyUserPhone}</td>
-                                                                    <td>{c.companyUserEmail}</td>
-                                                                    <td>{c.companyUserPosition}</td>
-                                                                    <td>{c.companyUserDivision}</td>
+                                                            {companyUsers.map((companyUser) => (
+                                                                <tr key={companyUser.companyUserEmail}>
+                                                                    <td>{companyUser.companyUserName}</td>
+                                                                    <td>{companyUser.companyUserPhone}</td>
+                                                                    <td>{companyUser.companyUserEmail}</td>
+                                                                    <td>{companyUser.companyUserPosition}</td>
+                                                                    <td>{companyUser.companyUserDivision}</td>
                                                                 </tr>
                                                             ))}
                                                             </tbody>

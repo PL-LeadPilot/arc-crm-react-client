@@ -487,19 +487,20 @@ function CompanyUserPage() {
                             </tr>
                             </thead>
                             <tbody>
-                            {sorted.map((user) => (
-                                <tr key={user.companyUserId} className="open-slide-panel"
+                            {sorted.map((companyUser) => (
+                                <tr key={companyUser.companyUserId}
+                                    className={`open-slide-panel ${selectedCompanyUser?.companyUserId === companyUser.companyUserId ? 'active' : ''}`}
                                     onClick={() => {
-                                        setSelectedCompanyUser(user);
-                                        fetchCompanyUserDetails(user.companyUserId);
+                                        setSelectedCompanyUser(companyUser);
+                                        fetchCompanyUserDetails(companyUser.companyUserId);
                                     }}>
-                                    <td>{user.companyUserId}</td>
-                                    <td>{user.companyUserName}</td>
-                                    <td>{user.companyName}</td>
-                                    <td>{user.companyUserPhone}</td>
-                                    <td>{user.companyUserEmail}</td>
-                                    <td>{user.companyUserPosition}</td>
-                                    <td>{user.companyUserDivision}</td>
+                                    <td>{companyUser.companyUserId}</td>
+                                    <td>{companyUser.companyUserName}</td>
+                                    <td>{companyUser.companyName}</td>
+                                    <td>{companyUser.companyUserPhone}</td>
+                                    <td>{companyUser.companyUserEmail}</td>
+                                    <td>{companyUser.companyUserPosition}</td>
+                                    <td>{companyUser.companyUserDivision}</td>
                                 </tr>
                             ))}
                             </tbody>
