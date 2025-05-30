@@ -44,7 +44,10 @@ type SortState = {
 function DealPage() {
     const navigate = useNavigate();
     const [deals, setDeals] = useState<Deal[]>([]);
-    const [sortState, setSortState] = useState<SortState[]>([]);
+    const [sortState, setSortState] = useState<SortState>({
+        key: 'dealAt',
+        order: 'desc',
+    });
     const [searchCompanyName, setSearchCompanyName] = useState('');
     const [searchCompanyUserName, setSearchCompanyUserName] = useState('');
     const [searchDealName, setSearchDealName] = useState('');
@@ -77,41 +80,38 @@ function DealPage() {
         userId: '',
         sourceType: 'INBOUND',
         statusType: 'NEW',
-        dealAt: '',
+        dealAt: new Date().toISOString().slice(0, 10),
     };
     const [newDeal, setNewDeal] = useState(initialDealState);
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
-            const existing = prev.find((s) => s.key === key);
-            const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-            if (existing) {
-                return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
+            if (prev && prev.key === key) {
+                return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
             }
-            return [...prev, { key, order: nextOrder }];
+            return { key, order: 'asc' };
         });
     };
 
     const getSortIcon = (key: SortKey) => {
-        const state = sortState.find((s) => s.key === key);
-        return state ? (state.order === 'asc' ? ' ▲' : ' ▼') : '';
+        if (!sortState || sortState.key !== key) return '';
+        return sortState.order === 'asc' ? ' ▲' : ' ▼';
     };
 
-    const multiSort = (list: Deal[]) => {
-        if (!Array.isArray(list) || sortState.length === 0) return list;
+    const Sort = (list: Deal[]) => {
+        if (!sortState) return list;
+
+        const { key, order } = sortState;
         return [...list].sort((a, b) => {
-            for (const { key, order } of sortState) {
-                const aVal = a[key];
-                const bVal = b[key];
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    const diff = aVal - bVal;
-                    if (diff !== 0) return order === 'asc' ? diff : -diff;
-                } else {
-                    const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
-                    if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
-                }
+            const aVal = a[key];
+            const bVal = b[key];
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                const diff = aVal - bVal;
+                return order === 'asc' ? diff : -diff;
+            } else {
+                const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+                return order === 'asc' ? cmp : -cmp;
             }
-            return 0;
         });
     };
 
@@ -364,7 +364,7 @@ function DealPage() {
         if (allEmpty) setSearchMode(false);
     }, [searchCompanyName, searchCompanyUserName, searchDealName]);
 
-    const sorted = multiSort(deals);
+    const sorted = Sort(deals);
 
     return (
         <div className="page">
@@ -377,7 +377,7 @@ function DealPage() {
                     <input type="text" placeholder="고객사 사원명" value={searchCompanyUserName} onChange={(e) => setSearchCompanyUserName(e.target.value)} />
                     <input type="text" placeholder="영업명" value={searchDealName} onChange={(e) => setSearchDealName(e.target.value)} />
                     <button onClick={() => { setPage(0); searchDeals(); }} >검색</button>
-                    <button onClick={() => setShowAddForm(true)} >영업이력 등록</button>
+                    <button onClick={() => setShowAddForm(true)} >영업 이력 등록</button>
                 </div>
 
                 {showAddForm && (
@@ -404,7 +404,7 @@ function DealPage() {
                                     <option value="COMPLETED">COMPLETED</option>
                                 </select>
                             </div>
-                            <div className="form-row"><label>영업 일자</label><input type="date" value={newDeal.dealAt} onChange={(e) => setNewDeal({ ...newDeal, dealAt: e.target.value })} /></div>
+                            <div className="form-row"><label>*영업 일자</label><input type="date" value={newDeal.dealAt} onChange={(e) => setNewDeal({ ...newDeal, dealAt: e.target.value })} /></div>
                             <div className="form-row">
                                 <button type="button" className="nav-button" onClick={() =>
                                     addDeal({

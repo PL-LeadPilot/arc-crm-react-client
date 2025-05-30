@@ -39,7 +39,10 @@ type SortState = {
 function CompanyPage() {
     const navigate = useNavigate();
     const [companies, setCompanies] = useState<Company[]>([]);
-    const [sortState, setSortState] = useState<SortState[]>([]);
+    const [sortState, setSortState] = useState<SortState>({
+        key: 'companyName',
+        order: 'asc',
+    });
     const [searchCompanyName, setSearchCompanyName] = useState('');
     const [searchMode, setSearchMode] = useState(false); // 검색 중 여부
     const [error, setError] = useState<string | null>(null);
@@ -68,42 +71,32 @@ function CompanyPage() {
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
-            const existing = prev.find((s) => s.key === key);
-            const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-
-            // 기존 key가 있으면 순서 유지, 정렬 방향만 변경
-            if (existing) {
-                return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
+            if (prev && prev.key === key) {
+                return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
             }
-
-            // 새로 등록된 정렬 기준은 뒤에 붙이기
-            return [...prev, { key, order: nextOrder }];
+            return { key, order: 'asc' };
         });
     };
 
     const getSortIcon = (key: SortKey) => {
-        const state = sortState.find((s) => s.key === key);
-        if (!state) return '';
-        return state.order === 'asc' ? ' ▲' : ' ▼';
+        if (!sortState || sortState.key !== key) return '';
+        return sortState.order === 'asc' ? ' ▲' : ' ▼';
     };
 
-    const multiSort = (list: Company[]) => {
-        if (!Array.isArray(list) || sortState.length === 0) return list;
+    const Sort = (list: Company[]) => {
+        if (!sortState) return list;
 
+        const { key, order } = sortState;
         return [...list].sort((a, b) => {
-            for (const { key, order } of sortState) {
-                const aVal = a[key];
-                const bVal = b[key];
-
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    const diff = aVal - bVal;
-                    if (diff !== 0) return order === 'asc' ? diff : -diff;
-                } else {
-                    const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
-                    if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
-                }
+            const aVal = a[key];
+            const bVal = b[key];
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                const diff = aVal - bVal;
+                return order === 'asc' ? diff : -diff;
+            } else {
+                const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+                return order === 'asc' ? cmp : -cmp;
             }
-            return 0;
         });
     };
 
@@ -317,7 +310,7 @@ function CompanyPage() {
         if (allEmpty) setSearchMode(false);
     }, [searchCompanyName]);
 
-    const sorted = multiSort(companies);
+    const sorted = Sort(companies);
 
     return (
         <div className="page">

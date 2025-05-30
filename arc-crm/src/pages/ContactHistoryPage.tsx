@@ -40,7 +40,10 @@ function ContactHistoryPage() {
     const [searchUserName, setSearchUserName] = useState('');
     const [searchDealName, setSearchDealName] = useState('');
     const [searchMode, setSearchMode] = useState(false);
-    const [sortState, setSortState] = useState<SortState[]>([]);
+    const [sortState, setSortState] = useState<SortState>({
+        key: 'contactAt',
+        order: 'desc',
+    });
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -63,7 +66,7 @@ function ContactHistoryPage() {
         userId: '',
         contactType: 'EMAIL',
         contactResult: 'REFUSE',
-        contactAt: '',
+        contactAt: new Date().toISOString().slice(0, 10),
         contactPercentage: 0,
         contactMemo: '',
     };
@@ -71,32 +74,32 @@ function ContactHistoryPage() {
 
     const toggleSort = (key: SortKey) => {
         setSortState((prev) => {
-            const existing = prev.find((s) => s.key === key);
-            const nextOrder = !existing || existing.order === 'desc' ? 'asc' : 'desc';
-            if (existing) {
-                return prev.map((s) => s.key === key ? { key, order: nextOrder } : s);
+            if (prev && prev.key === key) {
+                return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
             }
-            return [...prev, { key, order: nextOrder }];
+            return { key, order: 'asc' };
         });
     };
 
     const getSortIcon = (key: SortKey) => {
-        const state = sortState.find((s) => s.key === key);
-        return state ? (state.order === 'asc' ? ' ▲' : ' ▼') : '';
+        if (!sortState || sortState.key !== key) return '';
+        return sortState.order === 'asc' ? ' ▲' : ' ▼';
     };
 
-    const multiSort = (list: Contact[]) => {
-        if (!Array.isArray(list) || sortState.length === 0) return list;
+    const Sort = (list: Contact[]) => {
+        if (!sortState) return list;
+
+        const { key, order } = sortState;
         return [...list].sort((a, b) => {
-            for (const { key, order } of sortState) {
-                const aVal = a[key];
-                const bVal = b[key];
-                const cmp = typeof aVal === 'number' && typeof bVal === 'number'
-                    ? aVal - bVal
-                    : aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
-                if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
+            const aVal = a[key];
+            const bVal = b[key];
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                const diff = aVal - bVal;
+                return order === 'asc' ? diff : -diff;
+            } else {
+                const cmp = aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' });
+                return order === 'asc' ? cmp : -cmp;
             }
-            return 0;
         });
     };
 
@@ -294,7 +297,7 @@ function ContactHistoryPage() {
         else fetchContacts();
     }, [page]);
 
-    const sorted = multiSort(contactHistory);
+    const sorted = Sort(contactHistory);
 
     return (
         <div className="page">
