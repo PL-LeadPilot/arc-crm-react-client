@@ -1,5 +1,5 @@
-import React, {JSX} from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { JSX, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import LoginPage from './pages/user-pages/LoginPage';
 import SignUpPage from './pages/user-pages/SignUpPage';
 import UserPage from './pages/user-pages/UserPage';
@@ -43,6 +43,37 @@ const AdminRoute = ({ element }: { element: JSX.Element }) =>
     isTokenValid() && getUserRole() === 'ADMIN' ? element : <Navigate to="/company" />;
 
 function App() {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const exp = payload.exp * 1000; // ms 단위
+            const now = Date.now();
+            const timeout = exp - now;
+
+            if (timeout > 0) {
+                const timer = setTimeout(() => {
+                    localStorage.removeItem('token');
+                    alert('세션이 만료되어 로그인 페이지로 이동합니다.');
+                    navigate('/login');
+                }, timeout);
+
+                return () => clearTimeout(timer); // 언마운트 시 타이머 정리
+            } else {
+                // 이미 만료
+                localStorage.removeItem('token');
+                navigate('/login');
+            }
+        } catch {
+            localStorage.removeItem('token');
+            navigate('/login');
+        }
+    }, [navigate]);
+
     return (
         <Routes>
             <Route path="/login" element={<PublicOnlyRoute element={<LoginPage />} />} />
