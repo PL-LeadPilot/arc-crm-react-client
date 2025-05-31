@@ -192,7 +192,7 @@ function CompanyPage() {
             errors.companyName = '최대 30자';
         }
 
-        if (company.companyAddress && company.companyAddress.length > 60) { errors.companyAddress = '최대 60자'; }
+        if (!company.companyAddress || company.companyAddress.length > 60) { errors.companyAddress = '최대 60자'; }
 
         if (!company.userId.trim()) {
             errors.userId = '유저 ID 필수';

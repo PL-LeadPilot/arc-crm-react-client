@@ -245,7 +245,7 @@ function CompanyUserPage() {
             errors.companyUserEmail = '이메일 형식: exam@example.com';
         }
 
-        if (companyUser.companyUserPhone && !/^010-\d{4}-\d{4}$/.test(companyUser.companyUserPhone)) {
+        if (!companyUser.companyUserPhone || !/^010-\d{4}-\d{4}$/.test(companyUser.companyUserPhone)) {
             errors.companyUserPhone = '전화번호 형식: 010-0000-0000';
         }
 

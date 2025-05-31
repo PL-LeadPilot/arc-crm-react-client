@@ -75,10 +75,10 @@ function SignUpPage() {
             errors.userPassword = '7~20자 (영문 + 숫자)';
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) { errors.userEmail = '이메일 형식: exam@example.com'; }
-        if (userName.trim().length < 2 && userName.trim().length > 20) { errors.userName = '2~20자 문자'; }
+        if (userName.trim().length < 2 || userName.trim().length > 20) { errors.userName = '2~20자 문자'; }
         if (!/^010-\d{4}-\d{4}$/.test(userPhone)) { errors.userPhone = '전화번호 형식: 010-0000-0000'; }
-        if (userDivision.trim().length < 1 && userDivision.trim().length > 31) { errors.userDivision = '최대 30자 문자'; }
-        if (userPosition.trim().length < 1 && userPosition.trim().length > 31) { errors.userPosition = '최대 30자 문자'; }
+        if (userDivision.trim().length < 1 || userDivision.trim().length > 31) { errors.userDivision = '최대 30자 문자'; }
+        if (userPosition.trim().length < 1 || userPosition.trim().length > 31) { errors.userPosition = '최대 30자 문자'; }
         if (Object.keys(errors).length > 0) {
             setFieldErrors(errors);
             return;
@@ -151,7 +151,7 @@ function SignUpPage() {
                         <label htmlFor="userPassword">*비밀번호</label>
                         <input
                             type="password"
-                            placeholder="7~20자 (영문+숫자)"
+                            placeholder="7~20자 (영문 + 숫자)"
                             value={userPassword}
                             onChange={(e) => setUserPassword(e.target.value)}
                             required
