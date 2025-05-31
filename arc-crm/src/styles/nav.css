@@ -36,3 +36,14 @@ body, .page {
     color: white;
     border-color: darkgray;
 }
+
+.time-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: lightgray;
+}
+
+.time-danger {
+    color: red;
+}

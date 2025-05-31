@@ -93,7 +93,8 @@ function UserPage() {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            if (!response.ok) throw new Error('유저 정보를 불러오는데 실패했습니다.');
+            if (!response.ok) throw new Error('유저 정보 조회 실패');
+
             const data = await response.json();
             setUsers(data.content);
             setTotalPages(data.totalPages);
@@ -119,7 +120,7 @@ function UserPage() {
                     {userRole === 'ADMIN' && (
                         <button onClick={handleGoToSignUp} className="nav-button">유저 회원가입</button>
                     )}
-                    <button onClick={handleGoToMyPage} className="nav-button">내 정보 보기</button>
+                    <button onClick={handleGoToMyPage} className="nav-button">유저 상세정보</button>
                 </div>
                 <div className="nav-right">
                     <button onClick={handleGoToUserPage} className="nav-button active">유저 페이지</button>
@@ -144,7 +145,7 @@ function UserPage() {
                             </thead>
                             <tbody>
                             {sorted.map((user) => (
-                                <tr key={user.userName}>
+                                <tr key={user.userEmail}>
                                     <td>{user.userName}</td>
                                     <td>{user.userEmail}</td>
                                     <td>{user.userPhone}</td>

@@ -150,7 +150,8 @@ function DealPage() {
             const response = await fetch(`/deal?page=${page}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (!response.ok) throw new Error('영업 이력을 불러오는데 실패했습니다.');
+            if (!response.ok) throw new Error('영업 이력 조회 실패');
+
             const data = await response.json();
             setDeals(data.content);
             setTotalPages(data.totalPages);
@@ -176,7 +177,10 @@ function DealPage() {
                 body: JSON.stringify({ dealId }),
             });
 
-            if (!response.ok) throw new Error('상세 정보를 불러오는데 실패했습니다.');
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '영업 이력 상세정보 조회 실패');
+            }
 
             const data = await response.json();
             setDealDetail(data);
@@ -195,7 +199,6 @@ function DealPage() {
             return;
         }
 
-        setLoading(true);
         try {
             const params = new URLSearchParams();
             if (searchCompanyName.trim()) params.append('companyName', searchCompanyName);
@@ -208,7 +211,11 @@ function DealPage() {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            if (!response.ok) throw new Error('검색에 실패했습니다.');
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '검색 실패');
+            }
+
             const data = await response.json();
             setDeals(data.content);
             setTotalPages(data.totalPages);
@@ -216,8 +223,6 @@ function DealPage() {
             setError(null);
         } catch (err) {
             setError((err as Error).message);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -230,15 +235,14 @@ function DealPage() {
         statusType: string;
         dealAt: string;
     }) => {
-        if (!dealData.dealName.trim()) { return setError('영업명은 필수입니다.'); }
-        if (!dealData.companyId || isNaN(dealData.companyId)) { return setError('고객사 ID는 필수입니다.')}
-        if (!dealData.companyUserId || isNaN(dealData.companyUserId)) { return setError('고객사 사원 ID는 필수입니다.')}
-        if (!dealData.userId.trim()) { return setError('담당자 ID는 필수입니다.')}
-        if (!dealData.sourceType.trim()) { return setError('유입 경로는 필수입니다.')}
-        if (!dealData.statusType.trim()) { return setError('영업 상태는 필수입니다.')}
-        if (!dealData.dealAt.trim()) { return setError('영업 일자는 필수입니다.')}
+        if (!dealData.dealName.trim()) { return setError('영업명 필수'); }
+        if (!dealData.companyId || isNaN(dealData.companyId)) { return setError('고객사 ID 필수')}
+        if (!dealData.companyUserId || isNaN(dealData.companyUserId)) { return setError('고객사 사원 ID 필수')}
+        if (!dealData.userId.trim()) { return setError('담당자 ID 필수')}
+        if (!dealData.sourceType.trim()) { return setError('유입 경로 필수')}
+        if (!dealData.statusType.trim()) { return setError('영업 상태 필수')}
+        if (!dealData.dealAt.trim()) { return setError('영업 일자 필수')}
 
-        setLoading(true);
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('/deal', {
@@ -254,17 +258,18 @@ function DealPage() {
                 }),
             });
 
-            if (!response.ok) throw new Error('영업 이력 등록에 실패했습니다.');
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '영업 이력 등록 실패');
+            }
 
-            alert('영업 이력이 등록되었습니다.');
-            setShowAddForm(false);
+            alert('영업 이력 등록 성공');
             await fetchDeals();
+            setShowAddForm(false);
             setNewDeal(initialDealState);
             setError(null);
         } catch (err) {
             setError((err as Error).message);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -286,7 +291,10 @@ function DealPage() {
                 }),
             });
 
-            if (!response.ok) throw new Error('영업 이력 수정 실패');
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '영업 이력 상세정보 수정 실패');
+            }
 
             await fetchDeals();
             fetchDealDetails(selectedDeal!.dealId);
@@ -317,16 +325,16 @@ function DealPage() {
 
             if (!response.ok) {
                 const errorMessage = await response.text();
-                throw new Error(errorMessage || '영업 이력 삭제에 실패했습니다.');
+                throw new Error(errorMessage || '영업 이력 삭제 실패');
             }
 
-            alert('영업 이력이 삭제되었습니다.');
+            alert('영업 이력 삭제 성공');
             setSelectedDeal(null);
             setDealDetail(null);
             setEditMode(false);
             await fetchDeals();
         } catch (err) {
-            alert(`삭제 실패: ${(err as Error).message}`);
+            alert((err as Error).message);
         }
     };
 
@@ -342,12 +350,16 @@ function DealPage() {
                 body: JSON.stringify({ dealId }),
             });
 
-            if (!response.ok) throw new Error('컨택 이력을 불러오는데 실패했습니다.');
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || '컨택 이력 조회 실패');
+            }
+
             const data = await response.json();
             setContact(data);
+            setError(null);
         } catch (error) {
-            console.error((error as Error).message);
-            setContact([]);
+            setError((error as Error).message);
         }
     };
 
@@ -384,10 +396,10 @@ function DealPage() {
                     <div className="overlay">
                         <div className="container">
                             <h3>영업 이력 등록</h3>
-                            <div className="form-row"><label>*영업명</label><input type="text" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required /></div>
+                            <div className="form-row"><label>*영업명</label><input type="text" placeholder="최대 30자" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required /></div>
                             <div className="form-row"><label>*고객사 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required /></div>
                             <div className="form-row"><label>*고객사 사원 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required /></div>
-                            <div className="form-row"><label>*담당자 ID</label><input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value })} required /></div>
+                            <div className="form-row"><label>*담당자 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value.replace(/\D/g, '') })} required /></div>
                             <div className="form-row">
                                 <label>*유입경로</label>
                                 <select value={newDeal.sourceType} onChange={(e) => setNewDeal({ ...newDeal, sourceType: e.target.value })}>
@@ -513,11 +525,11 @@ function DealPage() {
                                     ) : editMode ? (
                                         <div className="container">
                                             <form onSubmit={handleDealUpdate}>
-                                                <h3>영업 이력 수정</h3>
+                                                <h3>영업 이력 상세정보 수정</h3>
                                                 <div className="form-row"><label>영업 ID</label><span>{selectedDeal!.dealId}</span></div>
-                                                <div className="form-row"><label>*영업명</label><input type="text" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
+                                                <div className="form-row"><label>*영업명</label><input type="text" placeholder="최대 30자" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
                                                 <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
-                                                <div className="form-row"><label>*고객사 사원 ID</label><input type="text" value={dealDetail.companyUserId} onChange={(e) => setDealDetail({ ...dealDetail, companyUserId: Number(e.target.value) })}/></div>
+                                                <div className="form-row"><label>*고객사 사원 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={dealDetail.companyUserId} onChange={(e) => setDealDetail({ ...dealDetail, companyUserId: Number(e.target.value.replace(/\D/g, '')) })}/></div>
                                                 <div className="form-row"><label>*유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
                                                 <div className="form-row"><label>*유입 경로</label>
                                                     <select value={dealDetail.sourceType} onChange={(e) => setDealDetail({ ...dealDetail, sourceType: e.target.value })}>
@@ -551,7 +563,7 @@ function DealPage() {
                                         </div>
                                     ) : (
                                         <div className="container">
-                                            <h3>영업 상세 정보</h3>
+                                            <h3>영업 이력 상세정보</h3>
                                             <div className="form-row"><label>영업 ID</label><span>{selectedDeal!.dealId}</span></div>
                                             <div className="form-row"><label>영업명</label><span>{dealDetail.dealName}</span></div>
                                             <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>

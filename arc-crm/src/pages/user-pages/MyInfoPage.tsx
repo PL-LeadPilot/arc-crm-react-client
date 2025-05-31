@@ -61,26 +61,32 @@ function MyInfoPage() {
         const confirm = window.confirm('정말 탈퇴하시겠습니까?');
         if (!confirm) return;
 
-        const password = prompt('비밀번호를 입력하세요');
+        const password = prompt('비밀번호를 입력하세요.');
         if (!password) return;
 
-        const token = localStorage.getItem('token');
-        const response = await fetch('/user', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ userPassword: password }),
-        });
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/user', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({userPassword: password}),
+            });
 
-        if (response.ok) {
-            alert('탈퇴가 완료되었습니다.');
+            if (!response.ok) {
+                const errorMessage = await response.json();
+                throw new Error(errorMessage || '탈퇴 실패');
+            }
+
+            alert('탈퇴 성공');
             localStorage.removeItem('token');
             navigate('/');
-        } else {
-            alert('비밀번호가 일치하지 않거나 탈퇴에 실패했습니다.');
+        } catch (err) {
+            alert((err as Error).message);
         }
+
     };
 
     return (
@@ -98,7 +104,7 @@ function MyInfoPage() {
                 </div>
             </nav>
             <div className="container">
-                <h3>내 정보 보기</h3>
+                <h3>유저 상세정보</h3>
                 <div className="form-row"><label>이름</label><span>{userName}</span></div>
                 <div className="form-row"><label>전화번호</label><span>{userPhone}</span></div>
                 <div className="form-row"><label>이메일</label><span>{userEmail}</span></div>

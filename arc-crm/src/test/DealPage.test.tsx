@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import {render, screen, fireEvent, act, waitFor} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DealPage from '../pages/DealPage';
 import { BrowserRouter } from 'react-router-dom';
@@ -61,8 +61,9 @@ test('opens detail panel when deal is clicked', async () => {
     const dealNameCell = await screen.findByText('Test Deal');
     fireEvent.click(dealNameCell);
 
-    const headers = await screen.findAllByText('영업 상세 정보');
-    expect(headers.length).toBeGreaterThan(0);
+    await waitFor(() => {
+        expect(screen.getByText('영업 이력 상세정보')).toBeInTheDocument();
+    });
 });
 
 test('opens add form when button clicked', async () => {

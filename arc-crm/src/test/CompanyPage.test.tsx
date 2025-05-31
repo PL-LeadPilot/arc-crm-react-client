@@ -71,7 +71,7 @@ describe('CompanyPage', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('고객사 정보를 불러오는데 실패했습니다.')).toBeInTheDocument();
+            expect(screen.getByText('고객사 조회 실패')).toBeInTheDocument();
         });
     });
 });

@@ -31,7 +31,7 @@ describe('UserPage', () => {
         expect(screen.getByText('유저 회원가입')).toBeInTheDocument();
         expect(screen.getByText('로그아웃')).toBeInTheDocument();
         expect(screen.getByText('고객사 페이지')).toBeInTheDocument();
-        expect(screen.getByText('내 정보 보기')).toBeInTheDocument();
+        expect(screen.getByText('유저 상세정보')).toBeInTheDocument();
     });
 
     it('SALES는 회원가입 버튼이 보이지 않는다', () => {
@@ -59,11 +59,11 @@ describe('UserPage', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/company');
     });
 
-    it('내 정보 보기 버튼 클릭 시 /user/me로 이동한다', () => {
+    it('유저 상세정보 버튼 클릭 시 /user/me로 이동한다', () => {
         localStorage.setItem('token', createJwt('ADMIN'));
         render(<UserPage />, { wrapper: MemoryRouter });
 
-        fireEvent.click(screen.getByText('내 정보 보기')); // ✅ 추가 테스트
+        fireEvent.click(screen.getByText('유저 상세정보')); // 추가 테스트
         expect(mockNavigate).toHaveBeenCalledWith('/user/me');
     });
 
