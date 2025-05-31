@@ -43,3 +43,7 @@ body, .page {
     justify-content: center;
     color: lightgray;
 }
+
+.time-danger {
+    color: red;
+}

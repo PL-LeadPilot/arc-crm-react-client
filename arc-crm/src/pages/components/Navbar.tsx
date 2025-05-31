@@ -53,7 +53,9 @@ function Navbar({ onLogout }: { onLogout: () => void }) {
             <div className="nav-left">
                 <button onClick={onLogout} className="nav-button">로그아웃</button>
                 {remainingTime !== null && (
-                    <span className="time-container"> 남은 시간: {formatTime(remainingTime)} </span>
+                    <span className={`time-container ${remainingTime <= 300000 ? 'time-danger' : ''}`}>
+                        남은 시간: {formatTime(remainingTime)}
+                    </span>
                 )}
             </div>
             <div className="nav-right">
