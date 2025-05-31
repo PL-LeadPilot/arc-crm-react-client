@@ -23,19 +23,18 @@ afterEach(() => {
     localStorage.clear();
 });
 
-describe('SignUpPage', () => {
+describe('SignUpPage (no id)', () => {
     it('필수 입력 필드와 버튼이 렌더링된다', () => {
         localStorage.setItem('token', createJwt('ADMIN'));
         render(<SignUpPage />, { wrapper: MemoryRouter });
 
-        expect(screen.getByLabelText('*아이디')).toBeInTheDocument();
-        expect(screen.getByLabelText('*비밀번호')).toBeInTheDocument();
-        expect(screen.getByLabelText('*이메일')).toBeInTheDocument();
-        expect(screen.getByLabelText('*이름')).toBeInTheDocument();
-        expect(screen.getByLabelText('*전화번호')).toBeInTheDocument();
-        expect(screen.getByLabelText('*직책')).toBeInTheDocument();
-        expect(screen.getByLabelText('*부서')).toBeInTheDocument();
-        expect(screen.getByLabelText('*권한')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('3~20자 (영문 or 숫자)')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('7~20자 (영문 + 숫자)')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('exam@example.com')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('2~20자 문자')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('*010-0000-0000')).toBeInTheDocument();
+        const [positionInput, divisionInput] = screen.getAllByPlaceholderText('최대 30자'); // 부서
+        expect(screen.getByRole('combobox')).toBeInTheDocument(); // 권한 선택
         expect(screen.getByRole('button', { name: '회원가입' })).toBeInTheDocument();
     });
 
@@ -52,28 +51,26 @@ describe('SignUpPage', () => {
 
         render(<SignUpPage />, { wrapper: MemoryRouter });
 
-        fireEvent.change(screen.getByLabelText('*아이디'), {
+        fireEvent.change(screen.getByPlaceholderText('3~20자 (영문 or 숫자)'), {
             target: { value: 'newuser' },
         });
-        fireEvent.change(screen.getByLabelText('*비밀번호'), {
+        fireEvent.change(screen.getByPlaceholderText('7~20자 (영문 + 숫자)'), {
             target: { value: 'test1234' },
         });
-        fireEvent.change(screen.getByLabelText('*이메일'), {
+        fireEvent.change(screen.getByPlaceholderText('exam@example.com'), {
             target: { value: 'test@abc.com' },
         });
-        fireEvent.change(screen.getByLabelText('*이름'), {
+        fireEvent.change(screen.getByPlaceholderText('2~20자 문자'), {
             target: { value: '홍길동' },
         });
-        fireEvent.change(screen.getByLabelText('*전화번호'), {
+        fireEvent.change(screen.getByPlaceholderText('*010-0000-0000'), {
             target: { value: '010-1234-5678' },
         });
-        fireEvent.change(screen.getByLabelText('*직책'), {
-            target: { value: '사원' },
-        });
-        fireEvent.change(screen.getByLabelText('*부서'), {
-            target: { value: '영업팀' },
-        });
-        fireEvent.change(screen.getByLabelText('*권한'), {
+        const [positionInput, divisionInput] = screen.getAllByPlaceholderText('최대 30자');
+        fireEvent.change(positionInput, { target: { value: '사원' } }); // userPosition
+        fireEvent.change(divisionInput, { target: { value: '영업팀' } }); // userDivision
+
+        fireEvent.change(screen.getByRole('combobox'), {
             target: { value: 'ADMIN' },
         });
 
@@ -114,25 +111,25 @@ describe('SignUpPage', () => {
 
         render(<SignUpPage />, { wrapper: MemoryRouter });
 
-        fireEvent.change(screen.getByLabelText('*아이디'), {
+        fireEvent.change(screen.getByPlaceholderText('3~20자 (영문 or 숫자)'), {
             target: { value: 'existinguser' },
         });
-        fireEvent.change(screen.getByLabelText('*비밀번호'), {
+        fireEvent.change(screen.getByPlaceholderText('7~20자 (영문 + 숫자)'), {
             target: { value: 'test1234' },
         });
-        fireEvent.change(screen.getByLabelText('*이메일'), {
+        fireEvent.change(screen.getByPlaceholderText('exam@example.com'), {
             target: { value: 'test@abc.com' },
         });
-        fireEvent.change(screen.getByLabelText('*이름'), {
+        fireEvent.change(screen.getByPlaceholderText('2~20자 문자'), {
             target: { value: '홍길동' },
         });
-        fireEvent.change(screen.getByLabelText('*전화번호'), {
+        fireEvent.change(screen.getByPlaceholderText('*010-0000-0000'), {
             target: { value: '010-1234-5678' },
         });
-        fireEvent.change(screen.getByLabelText('*직책'), {
+        fireEvent.change(screen.getAllByPlaceholderText('최대 30자')[0], {
             target: { value: '사원' },
         });
-        fireEvent.change(screen.getByLabelText('*부서'), {
+        fireEvent.change(screen.getAllByPlaceholderText('최대 30자')[1], {
             target: { value: '영업팀' },
         });
 

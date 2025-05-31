@@ -10,7 +10,7 @@ jest.mock('react-router-dom', () => ({
     useNavigate: () => mockNavigate,
 }));
 
-describe('EditMyInfoPage', () => {
+describe('EditMyInfoPage (no id)', () => {
     beforeEach(() => {
         localStorage.setItem('token', 'fake-token');
         global.fetch = jest.fn((url, options) => {
@@ -52,12 +52,13 @@ describe('EditMyInfoPage', () => {
     it('유효한 값 입력 후 수정 요청 시 /user/me로 이동', async () => {
         render(<EditMyInfoPage />, { wrapper: MemoryRouter });
 
-        fireEvent.change(await screen.findByLabelText('*현재 비밀번호'), {
+        fireEvent.change(await screen.findByPlaceholderText('입력하셔야 수정됩니다.'), {
             target: { value: 'currentPass123' },
         });
-        fireEvent.change(screen.getByLabelText('새 비밀번호 (선택)'), {
+        fireEvent.change(screen.getByPlaceholderText('7~20자 (영문+숫자)'), {
             target: { value: 'newPass123' },
         });
+
         fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
         await waitFor(() => {
@@ -67,10 +68,11 @@ describe('EditMyInfoPage', () => {
 
     it('현재 비밀번호 없이 제출 시 에러 메시지 표시', async () => {
         render(<EditMyInfoPage />, { wrapper: MemoryRouter });
+
         fireEvent.click(await screen.findByRole('button', { name: '저장' }));
 
         await waitFor(() => {
-            expect(screen.getByText('현재 비밀번호는 필수입니다.')).toBeInTheDocument();
+            expect(screen.getByText('현재 비밀번호는 필수')).toBeInTheDocument();
         });
     });
 
@@ -78,16 +80,17 @@ describe('EditMyInfoPage', () => {
         render(<EditMyInfoPage />, { wrapper: MemoryRouter });
         await screen.findByDisplayValue('010-1234-5678');
 
-        fireEvent.change(screen.getByLabelText('전화번호'), {
+        fireEvent.change(screen.getByPlaceholderText('*010-0000-0000'), {
             target: { value: '1234' },
         });
-        fireEvent.change(screen.getByLabelText('*현재 비밀번호'), {
+        fireEvent.change(screen.getByPlaceholderText('입력하셔야 수정됩니다.'), {
             target: { value: 'pass123' },
         });
+
         fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
         await waitFor(() => {
-            expect(screen.getByText('전화번호 형식은 010-0000-0000입니다.')).toBeInTheDocument();
+            expect(screen.getByText('전화번호 형식: 010-0000-0000')).toBeInTheDocument();
         });
     });
 });

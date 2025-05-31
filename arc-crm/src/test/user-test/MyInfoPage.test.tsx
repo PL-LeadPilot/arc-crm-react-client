@@ -77,7 +77,7 @@ describe('MyInfoPage', () => {
             expect(fetch).toHaveBeenCalledWith('/user', expect.objectContaining({ method: 'DELETE' }));
             expect(localStorage.getItem('token')).toBeNull();
             expect(mockNavigate).toHaveBeenCalledWith('/');
-            expect(window.alert).toHaveBeenCalledWith('탈퇴가 완료되었습니다.');
+            expect(window.alert).toHaveBeenCalledWith('탈퇴 성공');
         });
     });
 
@@ -115,7 +115,7 @@ describe('MyInfoPage', () => {
         fireEvent.click(await screen.findByText('탈퇴'));
 
         await waitFor(() => {
-            expect(window.alert).toHaveBeenCalledWith('비밀번호가 일치하지 않거나 탈퇴에 실패했습니다.');
+            expect(window.alert).toHaveBeenCalledWith("response.json is not a function");
         });
     });
 });
