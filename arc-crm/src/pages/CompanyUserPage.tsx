@@ -218,6 +218,8 @@ function CompanyUserPage() {
             setError(null);
         } catch (err) {
             setError((err as Error).message);
+        } finally {
+            setLoading(false);
         }
     };
 
