@@ -158,6 +158,7 @@ function CompanyPage() {
             return;
         }
 
+        setLoading(true);
         try {
             const params = new URLSearchParams();
             if (searchCompanyName) params.append('companyName', searchCompanyName);
@@ -180,6 +181,8 @@ function CompanyPage() {
             setError(null);
         } catch (err) {
             setError((err as Error).message);
+        } finally {
+            setLoading(false);
         }
     };
 
