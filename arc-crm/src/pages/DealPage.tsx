@@ -199,6 +199,7 @@ function DealPage() {
             return;
         }
 
+        setLoading(true);
         try {
             const params = new URLSearchParams();
             if (searchCompanyName.trim()) params.append('companyName', searchCompanyName);
@@ -223,6 +224,8 @@ function DealPage() {
             setError(null);
         } catch (err) {
             setError((err as Error).message);
+        } finally {
+            setLoading(false);
         }
     };
 

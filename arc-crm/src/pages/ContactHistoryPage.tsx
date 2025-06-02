@@ -159,6 +159,7 @@ function ContactHistoryPage() {
             return;
         }
 
+        setLoading(true);
         try {
             const params = new URLSearchParams();
             if (searchCompanyName) params.append('companyName', searchCompanyName);
@@ -184,6 +185,8 @@ function ContactHistoryPage() {
             setError(null);
         } catch (err) {
             setError((err as Error).message);
+        } finally {
+            setLoading(false);
         }
     };
 
