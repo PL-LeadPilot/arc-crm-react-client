@@ -65,20 +65,20 @@ function SignUpPage() {
         setError(null);
         const errors: Record<string, string> = {};
 
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(userId)) { errors.userId = '3~20자 (영문 or 숫자)'; }
+        if (!/^[a-zA-Z0-9]{3,20}$/.test(userId)) { errors.userId = '아이디: 3~20자 (영문 or 숫자)'; }
         if (
             userPassword.length < 7 ||
             userPassword.length > 20 ||
             !/[a-zA-Z]/.test(userPassword) ||
             !/[0-9]/.test(userPassword)
         ) {
-            errors.userPassword = '7~20자 (영문 + 숫자)';
+            errors.userPassword = '비밀번호: 7~20자 (영문 + 숫자)';
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) { errors.userEmail = '이메일 형식: exam@example.com'; }
-        if (userName.trim().length < 2 || userName.trim().length > 20) { errors.userName = '2~20자 문자'; }
+        if (userName.trim().length < 2 || userName.trim().length > 20) { errors.userName = '이름: 2~20자 문자'; }
         if (!/^010-\d{4}-\d{4}$/.test(userPhone)) { errors.userPhone = '전화번호 형식: 010-0000-0000'; }
-        if (userDivision.trim().length < 1 || userDivision.trim().length > 31) { errors.userDivision = '최대 30자 문자'; }
-        if (userPosition.trim().length < 1 || userPosition.trim().length > 31) { errors.userPosition = '최대 30자 문자'; }
+        if (userDivision.trim().length > 31) { errors.userDivision = '직책: 최대 30자 문자'; }
+        if (userPosition.trim().length < 1 || userPosition.trim().length > 31) { errors.userPosition = '부서: 최대 30자 문자'; }
         if (Object.keys(errors).length > 0) {
             setFieldErrors(errors);
             return;
@@ -187,7 +187,7 @@ function SignUpPage() {
                         <label htmlFor="userPhone">*전화번호</label>
                         <input
                             type="text"
-                            placeholder="*010-0000-0000"
+                            placeholder="010-0000-0000"
                             value={userPhone}
                             onChange={(e) => setUserPhone(e.target.value)}
                             required
