@@ -400,9 +400,9 @@ function DealPage() {
                         <div className="container">
                             <h3>영업 이력 등록</h3>
                             <div className="form-row"><label>*영업명</label><input type="text" placeholder="최대 30자" value={newDeal.dealName} onChange={(e) => setNewDeal({ ...newDeal, dealName: e.target.value })} required /></div>
-                            <div className="form-row"><label>*고객사 ID</label><input type="text" placeholder="숫자" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required /></div>
-                            <div className="form-row"><label>*고객사 사원 ID</label><input type="text" placeholder="숫자" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required /></div>
-                            <div className="form-row"><label>*담당자 ID</label><input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value.replace(/\D/g, '') })} required /></div>
+                            <div className="form-row"><label>*고객사 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyId} onChange={(e) => setNewDeal({ ...newDeal, companyId: e.target.value.replace(/\D/g, '') })} required /></div>
+                            <div className="form-row"><label>*고객사 사원 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newDeal.companyUserId} onChange={(e) => setNewDeal({ ...newDeal, companyUserId: e.target.value.replace(/\D/g, '') })} required /></div>
+                            <div className="form-row"><label>*담당자 ID</label><input type="text" value={newDeal.userId} onChange={(e) => setNewDeal({ ...newDeal, userId: e.target.value })} required /></div>
                             <div className="form-row">
                                 <label>*유입경로</label>
                                 <select value={newDeal.sourceType} onChange={(e) => setNewDeal({ ...newDeal, sourceType: e.target.value })}>
@@ -533,7 +533,7 @@ function DealPage() {
                                                 <div className="form-row"><label>*영업명</label><input type="text" placeholder="최대 30자" value={dealDetail.dealName} onChange={(e) => setDealDetail({ ...dealDetail, dealName: e.target.value })} /></div>
                                                 <div className="form-row"><label>고객사 ID</label><span>{dealDetail.companyId}</span></div>
                                                 <div className="form-row"><label>*고객사 사원 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={dealDetail.companyUserId} onChange={(e) => setDealDetail({ ...dealDetail, companyUserId: Number(e.target.value.replace(/\D/g, '')) })}/></div>
-                                                <div className="form-row"><label>*유저 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
+                                                <div className="form-row"><label>*담당자 ID</label><input type="text" value={dealDetail.userId} onChange={(e) => setDealDetail({ ...dealDetail, userId: e.target.value })} /></div>
                                                 <div className="form-row"><label>*유입 경로</label>
                                                     <select value={dealDetail.sourceType} onChange={(e) => setDealDetail({ ...dealDetail, sourceType: e.target.value })}>
                                                         <option value="INBOUND">INBOUND</option>
