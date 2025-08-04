@@ -187,7 +187,7 @@ function SignUpPage() {
                         <label htmlFor="userPhone">*전화번호</label>
                         <input
                             type="text"
-                            placeholder="*010-0000-0000"
+                            placeholder="010-0000-0000"
                             value={userPhone}
                             onChange={(e) => setUserPhone(e.target.value)}
                             required
