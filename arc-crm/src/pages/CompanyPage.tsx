@@ -192,15 +192,15 @@ function CompanyPage() {
         if (!company.companyName.trim()) {
             errors.companyName = '고객사명 필수';
         } else if (company.companyName.length > 30) {
-            errors.companyName = '최대 30자';
+            errors.companyName = '고객사명: 최대 30자';
         }
 
-        if (!company.companyAddress || company.companyAddress.length > 60) { errors.companyAddress = '최대 60자'; }
+        if (company.companyAddress.length > 60) { errors.companyAddress = '고객사 주소: 최대 60자'; }
 
         if (!company.userId.trim()) {
             errors.userId = '유저 ID 필수';
         } else if (!/^[a-zA-Z0-9]{3,20}$/.test(company.userId)) {
-            errors.userId = '3~20자 (영문 or 숫자)'
+            errors.userId = '유저 ID: 3~20자 (영문 or 숫자)'
         }
 
         return errors;

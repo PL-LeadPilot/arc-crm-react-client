@@ -238,7 +238,7 @@ function CompanyUserPage() {
         if (!companyUser.companyUserName.trim()) {
             errors.companyUserName = '고객사 사원 이름 필수';
         } else if (companyUser.companyUserName.length > 30) {
-            errors.companyUserName = '최대 30자';
+            errors.companyUserName = '고객사 사원 이름: 최대 30자';
         }
 
         if (!companyUser.companyUserEmail.trim()) {
@@ -247,7 +247,7 @@ function CompanyUserPage() {
             errors.companyUserEmail = '이메일 형식: exam@example.com';
         }
 
-        if (!companyUser.companyUserPhone || !/^010-\d{4}-\d{4}$/.test(companyUser.companyUserPhone)) {
+        if (!/^010-\d{4}-\d{4}$/.test(companyUser.companyUserPhone)) {
             errors.companyUserPhone = '전화번호 형식: 010-0000-0000';
         }
 
