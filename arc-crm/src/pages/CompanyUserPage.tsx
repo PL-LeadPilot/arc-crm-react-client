@@ -453,7 +453,7 @@ function CompanyUserPage() {
 
                             {fieldErrors.companyUserPhone && <p className="error">{fieldErrors.companyUserPhone}</p>}
                             <div className="form-row">
-                                <label>전화번호</label>
+                                <label>*전화번호</label>
                                 <input
                                     type="text"
                                     placeholder="010-0000-0000"
@@ -626,7 +626,7 @@ function CompanyUserPage() {
                                                 <div className="form-row"><label>*이름</label><input type="text" placeholder="최대 30자" value={companyUserDetail.companyUserName} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserName: e.target.value })} /></div>
 
                                                 {fieldErrors.companyUserPhone && <p className="error">{fieldErrors.companyUserPhone}</p>}
-                                                <div className="form-row"><label>전화번호</label><input type="text" placeholder="010-0000-0000" value={companyUserDetail.companyUserPhone} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserPhone: e.target.value })} /></div>
+                                                <div className="form-row"><label>*전화번호</label><input type="text" placeholder="010-0000-0000" value={companyUserDetail.companyUserPhone} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserPhone: e.target.value })} /></div>
 
                                                 {fieldErrors.companyUserEmail && <p className="error">{fieldErrors.companyUserEmail}</p>}
                                                 <div className="form-row"><label>*이메일</label><input type="text" placeholder="exam@example.com" value={companyUserDetail.companyUserEmail} onChange={(e) => setCompanyUserDetail({ ...companyUserDetail, companyUserEmail: e.target.value })} /></div>
