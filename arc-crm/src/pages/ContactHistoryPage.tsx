@@ -305,7 +305,7 @@ function ContactHistoryPage() {
     useEffect(() => {
         if (searchMode) searchContacts();
         else fetchContacts();
-    }, [page]);
+    }, [page, searchMode, searchContacts, fetchContacts]);
 
     const sorted = Sort(contactHistory);
 

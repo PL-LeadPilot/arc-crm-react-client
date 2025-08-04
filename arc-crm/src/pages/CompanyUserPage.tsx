@@ -397,7 +397,7 @@ function CompanyUserPage() {
         } else {
             fetchCompanyUsers().then(() => {});
         }
-    }, [page]);
+    }, [page, searchMode, fetchCompanyUsers, searchCompanyUsers]);
 
     useEffect(() => {
         const allEmpty = !searchCompanyName.trim() && !searchCompanyUserName.trim();

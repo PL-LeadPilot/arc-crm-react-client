@@ -345,7 +345,7 @@ function CompanyPage() {
         } else {
             fetchCompanies().then(() => {});
         }
-    }, [page]);
+    }, [page, searchMode, fetchCompanies, searchCompanies]);
 
     useEffect(() => {
         const allEmpty = !searchCompanyName.trim();

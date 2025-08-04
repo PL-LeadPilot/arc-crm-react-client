@@ -108,7 +108,7 @@ function UserPage() {
 
     useEffect(() => {
         fetchUsers().then(() => {});
-    }, [page]);
+    }, [page, fetchUsers]);
 
     const sorted = Sort(users);
 

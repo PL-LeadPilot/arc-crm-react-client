@@ -372,7 +372,7 @@ function DealPage() {
         } else {
             fetchDeals().then(() => {});
         }
-    }, [page]);
+    }, [page, searchMode, searchDeals, fetchDeals]);
 
     useEffect(() => {
         const allEmpty = !searchCompanyName.trim() && !searchCompanyUserName.trim() && !searchDealName.trim();
