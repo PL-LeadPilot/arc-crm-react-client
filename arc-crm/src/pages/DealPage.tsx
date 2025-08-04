@@ -227,7 +227,7 @@ function DealPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, searchCompanyName, searchCompanyUserName, searchDealName]);
+    }, [page, fetchDeals, searchCompanyName, searchCompanyUserName, searchDealName]);
 
     const addDeal = async (dealData: {
         dealName: string;

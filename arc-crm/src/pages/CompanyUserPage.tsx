@@ -221,7 +221,7 @@ function CompanyUserPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, searchCompanyName, searchCompanyUserName]);
+    }, [page, searchCompanyName, searchCompanyUserName, fetchCompanyUsers]);
 
     const validateCompanyUserInput = (companyUser: {
         companyId: number;

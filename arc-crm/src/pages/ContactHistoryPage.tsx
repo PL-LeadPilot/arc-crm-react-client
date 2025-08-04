@@ -188,7 +188,7 @@ function ContactHistoryPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, searchUserName, searchCompanyName, searchCompanyUserName, searchDealName]);
+    }, [page, fetchContacts, searchUserName, searchCompanyName, searchCompanyUserName, searchDealName]);
 
     const addContact = async (contactData: {
         dealId: number;
