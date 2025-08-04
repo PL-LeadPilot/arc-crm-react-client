@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/container.css';
 import '../styles/form.css';
@@ -143,7 +143,7 @@ function DealPage() {
         return order === 'asc' ? result : -result;
     });
 
-    const fetchDeals = async () => {
+    const fetchDeals = useCallback(async () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
@@ -161,7 +161,7 @@ function DealPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page]);
 
     const fetchDealDetails = async (dealId: number) => {
         setDetailLoading(true);
@@ -191,7 +191,7 @@ function DealPage() {
         }
     };
 
-    const searchDeals = async () => {
+    const searchDeals = useCallback(async () => {
         const noSearch = !searchCompanyName.trim() && !searchCompanyUserName.trim() && !searchDealName.trim();
         if (noSearch) {
             setSearchMode(false);
@@ -227,7 +227,7 @@ function DealPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, fetchDeals, searchCompanyName, searchCompanyUserName, searchDealName]);
 
     const addDeal = async (dealData: {
         dealName: string;
@@ -372,7 +372,7 @@ function DealPage() {
         } else {
             fetchDeals().then(() => {});
         }
-    }, [page]);
+    }, [page, searchMode, searchDeals, fetchDeals]);
 
     useEffect(() => {
         const allEmpty = !searchCompanyName.trim() && !searchCompanyUserName.trim() && !searchDealName.trim();

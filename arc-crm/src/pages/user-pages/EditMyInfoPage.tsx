@@ -19,10 +19,8 @@ function EditMyInfoPage() {
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-    const handleGoToSignUp = () => navigate('/signup');
     const handleGoToUserPage = () => navigate('/user');
     const handleGoToCompanyPage = () => navigate('/company');
-    const handleGoToEdit = () => navigate('/user/me/edit');
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/');

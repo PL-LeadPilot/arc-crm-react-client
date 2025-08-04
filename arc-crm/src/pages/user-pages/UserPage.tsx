@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/container.css'
 import '../../styles/form.css'
@@ -84,7 +84,7 @@ function UserPage() {
         });
     };
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
@@ -104,11 +104,11 @@ function UserPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page]);
 
     useEffect(() => {
         fetchUsers().then(() => {});
-    }, [page]);
+    }, [page, fetchUsers]);
 
     const sorted = Sort(users);
 
