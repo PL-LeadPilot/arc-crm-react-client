@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/container.css';
 import '../styles/form.css';
@@ -142,7 +142,7 @@ function CompanyUserPage() {
         return order === 'asc' ? result : -result;
     });
 
-    const fetchCompanyUsers = async () => {
+    const fetchCompanyUsers = useCallback(async () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
@@ -158,7 +158,7 @@ function CompanyUserPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page]);
 
     const fetchCompanyUserDetails = async (companyUserId: number) => {
         setDetailLoading(true);
@@ -187,7 +187,7 @@ function CompanyUserPage() {
         }
     };
 
-    const searchCompanyUsers = async () => {
+    const searchCompanyUsers = useCallback(async () => {
         const noSearch = !searchCompanyName.trim() && !searchCompanyUserName.trim();
         if (noSearch) {
             setSearchMode(false);
@@ -221,7 +221,7 @@ function CompanyUserPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, searchCompanyName, searchCompanyUserName]);
 
     const validateCompanyUserInput = (companyUser: {
         companyId: number;

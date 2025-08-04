@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/container.css';
 import '../styles/form.css';
@@ -101,7 +101,7 @@ function CompanyPage() {
         });
     };
 
-    const fetchCompanies = async () => {
+    const fetchCompanies = useCallback(async () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
@@ -119,7 +119,7 @@ function CompanyPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page]);
 
     const fetchCompanyDetails = async (companyId: number) => {
         setDetailLoading(true);
@@ -150,7 +150,7 @@ function CompanyPage() {
         }
     };
 
-    const searchCompanies = async () => {
+    const searchCompanies = useCallback(async () => {
         const noSearch = !searchCompanyName.trim();
         if (noSearch) {
             setSearchMode(false);
@@ -184,7 +184,7 @@ function CompanyPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, searchCompanyName, fetchCompanies]);
 
     const validateCompanyInput = (company: { companyName: string; companyAddress: string; userId: string }) => {
         const errors: Record<string, string> = {};

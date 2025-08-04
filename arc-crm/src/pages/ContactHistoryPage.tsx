@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import '../styles/container.css';
 import '../styles/form.css';
 import '../styles/nav.css';
@@ -103,7 +103,7 @@ function ContactHistoryPage() {
         });
     };
 
-    const fetchContacts = async () => {
+    const fetchContacts = useCallback(async () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
@@ -121,7 +121,7 @@ function ContactHistoryPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page]);
 
     const fetchContactHistoryDetails = async (contactId: number) => {
         setDetailLoading(true);
@@ -151,7 +151,7 @@ function ContactHistoryPage() {
         }
     };
 
-    const searchContacts = async () => {
+    const searchContacts = useCallback(async () => {
         const noSearch = !searchCompanyName.trim() && !searchCompanyUserName.trim() && !searchUserName.trim() && !searchDealName.trim();
         if (noSearch) {
             setSearchMode(false);
@@ -188,7 +188,7 @@ function ContactHistoryPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, searchUserName, searchCompanyName, searchCompanyUserName, searchDealName]);
 
     const addContact = async (contactData: {
         dealId: number;
