@@ -328,9 +328,9 @@ function ContactHistoryPage() {
                     <div className="overlay">
                         <div className="container">
                             <h3>컨택 이력 등록</h3>
-                                <div className="form-row"><label>*영업 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newContact.dealId} onChange={(e) => setNewContact({ ...newContact, dealId: e.target.value.replace(/\D/g, '') })} /></div>
-                                <div className="form-row"><label>*고객사 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newContact.companyId} onChange={(e) => setNewContact({ ...newContact, companyId: e.target.value.replace(/\D/g, '') })} /></div>
-                                <div className="form-row"><label>*고객사원 ID</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={newContact.companyUserId} onChange={(e) => setNewContact({ ...newContact, companyUserId: e.target.value.replace(/\D/g, '') })} /></div>
+                                <div className="form-row"><label>*영업 ID</label><input type="text" placeholder="숫자" inputMode="numeric" pattern="[0-9]*" value={newContact.dealId} onChange={(e) => setNewContact({ ...newContact, dealId: e.target.value.replace(/\D/g, '') })} /></div>
+                                <div className="form-row"><label>*고객사 ID</label><input type="text" placeholder="숫자" inputMode="numeric" pattern="[0-9]*" value={newContact.companyId} onChange={(e) => setNewContact({ ...newContact, companyId: e.target.value.replace(/\D/g, '') })} /></div>
+                                <div className="form-row"><label>*고객사원 ID</label><input type="text" placeholder="숫자" inputMode="numeric" pattern="[0-9]*" value={newContact.companyUserId} onChange={(e) => setNewContact({ ...newContact, companyUserId: e.target.value.replace(/\D/g, '') })} /></div>
                                 <div className="form-row"><label>*담당자 ID</label><input type="text" value={newContact.userId} onChange={(e) => setNewContact({ ...newContact, userId: e.target.value })} /></div>
                                 <div className="form-row"><label>*컨택 유형</label>
                                     <select value={newContact.contactType} onChange={(e) => setNewContact({ ...newContact, contactType: e.target.value })}>

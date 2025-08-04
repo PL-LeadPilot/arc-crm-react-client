@@ -272,7 +272,7 @@ function DealPage() {
             setNewDeal(initialDealState);
             setError(null);
         } catch (err) {
-            setError((err as Error).message);
+            alert((err as Error).message);
         }
     };
 
